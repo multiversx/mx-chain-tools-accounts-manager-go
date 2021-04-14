@@ -60,6 +60,7 @@ TRY:
 	}
 
 	c.backOffTime = 0
+	c.countTriesClone = 0
 
 	err = c.elasticClient.WaitYellowStatus()
 	if err != nil {
