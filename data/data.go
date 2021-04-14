@@ -67,3 +67,17 @@ type AccountsResponseES struct {
 	Found   bool             `json:"found"`
 	Account data.AccountInfo `json:"_source"`
 }
+
+// BulkRequestResponse defines the structure of a bulk request response
+type BulkRequestResponse struct {
+	Errors bool `json:"errors"`
+	Items  []struct {
+		Index struct {
+			Status int `json:"status"`
+			Error  struct {
+				Type   string `json:"type"`
+				Reason string `json:"reason"`
+			} `json:"error"`
+		} `json:"index"`
+	} `json:"items"`
+}

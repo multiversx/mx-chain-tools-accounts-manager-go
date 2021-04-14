@@ -18,17 +18,21 @@ var (
 const (
 	backOffTime = time.Second * 10
 	maxBackOff  = time.Minute * 5
+
+	maxNumberOfTriesCloneOperation = 10
 )
 
 type cloner struct {
-	backOffTime   time.Duration
-	elasticClient ElasticClientHandler
+	backOffTime     time.Duration
+	elasticClient   ElasticClientHandler
+	countTriesClone int
 }
 
 // NewCloner will create a new instance of a cloner
 func NewCloner(ec ElasticClientHandler) (*cloner, error) {
 	return &cloner{
-		elasticClient: ec,
+		elasticClient:   ec,
+		countTriesClone: 0,
 	}, nil
 }
 
@@ -43,17 +47,26 @@ TRY:
 			c.backOffAndWarn(err, "c.elasticClient.UnsetReadOnly: cannot unset readonly option")
 		}
 	case !cloned && err != nil:
+		c.countTriesClone++
+		if c.countTriesClone == maxNumberOfTriesCloneOperation {
+			return fmt.Errorf("cannot clone index after %d tries: %w", maxNumberOfTriesCloneOperation, err)
+		}
+
 		if checkIfErrorIsAlreadyExits(err, newIndex) {
 			return fmt.Errorf("cannot do clone operation of the index: %w", errNewIndexAlreadyExits)
 		}
 		c.backOffAndWarn(err, "c.elasticClient.CloneIndex: cannot clone index")
 		goto TRY
-	default:
-		c.backOffTime = 0
-		return nil
 	}
 
-	return nil
+	c.backOffTime = 0
+
+	err = c.elasticClient.WaitYellowStatus()
+	if err != nil {
+		return err
+	}
+
+	return c.elasticClient.UnsetReadOnly(newIndex)
 }
 
 func (c *cloner) backOffAndWarn(err error, reason string) {

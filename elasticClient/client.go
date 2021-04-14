@@ -2,11 +2,15 @@ package elasticClient
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
 )
+
+const numOfErrorsToExtractBulkResponse = 5
 
 type esClient struct {
 	client *elasticsearch.Client
@@ -45,8 +49,37 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		}
 	}()
 
-	// TODO parse body for bulk request to search errors
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	bulkResponse := &data.BulkRequestResponse{}
+	err = json.Unmarshal(bodyBytes, bulkResponse)
+	if err != nil {
+		return err
+	}
+
+	if bulkResponse.Errors {
+		return extractErrorFromBulkResponse(bulkResponse)
+	}
+
 	return nil
+}
+
+func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
+	count := 0
+	errorsString := ""
+	for _, item := range response.Items {
+		count++
+		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
+
+		if count == numOfErrorsToExtractBulkResponse {
+			break
+		}
+	}
+
+	return fmt.Errorf("%s", errorsString)
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
@@ -77,6 +110,22 @@ func (ec *esClient) DoMultiGet(ids []string, index string) ([]byte, error) {
 	return bodyBytes, nil
 }
 
+// WaitYellowStatus will wait for yellow status of the ES cluster (wait clone operation to be done)
+func (ec *esClient) WaitYellowStatus() error {
+	res, err := ec.client.Cluster.Health(
+		ec.client.Cluster.Health.WithWaitForStatus("yellow"),
+	)
+
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	return nil
+}
+
 // CloneIndex wil try to clone an index
 // to clone an index we have to set first index as "read-only" and after that do clone operation
 // after the clone operation is done we have to used read-only setting
@@ -96,7 +145,11 @@ func (ec *esClient) CloneIndex(index, targetIndex string) (cloned bool, err erro
 		return
 	}()
 
-	res, errClone := ec.client.Indices.Clone(index, targetIndex)
+	res, errClone := ec.client.Indices.Clone(
+		index,
+		targetIndex,
+		ec.client.Indices.Clone.WithWaitForActiveShards("1"),
+	)
 	if errClone != nil {
 		err = errClone
 		return

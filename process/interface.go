@@ -9,6 +9,7 @@ import (
 // ElasticClientHandler defines what an elastic client should be able do
 type ElasticClientHandler interface {
 	CloneIndex(index, targetIndex string) (cloned bool, err error)
+	WaitYellowStatus() error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoMultiGet(ids []string, index string) ([]byte, error)
 	UnsetReadOnly(index string) error

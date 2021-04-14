@@ -31,16 +31,13 @@ func NewDataProcessor(
 
 // ProcessAccountsData will process accounts data
 func (dp *dataProcessor) ProcessAccountsData() error {
-	log.Info("Starting process accounts data....")
 	accountsRest, addresses, err := dp.accountsProcessor.GetAllAccountsWithStake()
 	if err != nil {
 		return err
 	}
 
 	accountsES := dp.getAccountsESDatabase(addresses)
-
 	preparedAccounts := dp.accountsProcessor.PrepareAccountsForReindexing(accountsES, accountsRest)
-
 	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
 	if err != nil {
 		return err
@@ -52,6 +49,9 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 	}
 
 	defer logExecutionTime(time.Now(), "Indexed modified accounts")
+
+	log.Info("Accounts to index", "total", len(preparedAccounts))
+
 	return dp.accountsIndexer.IndexAccounts(preparedAccounts, newIndex)
 }
 
@@ -71,7 +71,7 @@ func (dp *dataProcessor) getAccountsESDatabase(addresses []string) map[string]*d
 		copy(newSliceOfAddresses, addresses[from:to])
 		accounts, errGet := dp.accountsIndexer.GetAccounts(newSliceOfAddresses, accountsIndex)
 		if errGet != nil {
-			// TODO what should do here --> think
+			log.Warn("dataProcessor.getAccountsESDatabase: cannot get accounts", "error", errGet)
 			continue
 		}
 		mergeAccountsMaps(accountsES, accounts)
