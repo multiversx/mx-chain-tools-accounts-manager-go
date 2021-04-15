@@ -10,6 +10,10 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	numAddressesInBulk = 2000
+)
+
 type accountsIndexer struct {
 	elasticClient ElasticClientHandler
 }
@@ -23,6 +27,32 @@ func NewAccountsIndexer(elasticClient ElasticClientHandler) (*accountsIndexer, e
 
 // GetAccounts will get accounts by addresses from a given index
 func (ai *accountsIndexer) GetAccounts(addresses []string, index string) (map[string]*data.AccountInfoWithStakeValues, error) {
+	accountsES := make(map[string]*data.AccountInfoWithStakeValues)
+	for idx := 0; idx < len(addresses); idx += numAddressesInBulk {
+		from := idx
+		to := idx + numAddressesInBulk
+
+		var newSliceOfAddresses []string
+		if to > len(addresses) {
+			to = len(addresses)
+			newSliceOfAddresses = make([]string, len(addresses)-idx)
+		} else {
+			newSliceOfAddresses = make([]string, numAddressesInBulk)
+		}
+
+		copy(newSliceOfAddresses, addresses[from:to])
+		accounts, errGet := ai.getBulkOfAccounts(newSliceOfAddresses, index)
+		if errGet != nil {
+			log.Warn("accountsIndexer.GetAccounts: cannot get accounts", "error", errGet)
+			continue
+		}
+		mergeAccountsMaps(accountsES, accounts)
+	}
+
+	return accountsES, nil
+}
+
+func (ai *accountsIndexer) getBulkOfAccounts(addresses []string, index string) (map[string]*data.AccountInfoWithStakeValues, error) {
 	response, err := ai.elasticClient.DoMultiGet(addresses, index)
 	if err != nil {
 		return nil, err
@@ -41,7 +71,8 @@ func (ai *accountsIndexer) GetAccounts(addresses []string, index string) (map[st
 			continue
 		}
 
-		accounts[acct.ID] = &acct.Account
+		newAcct := acct.Account
+		accounts[acct.ID] = &newAcct
 	}
 
 	return accounts, nil

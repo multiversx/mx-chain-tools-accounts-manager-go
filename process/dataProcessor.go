@@ -7,10 +7,6 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/mappings"
 )
 
-const (
-	numAddressesInBulk = 2000
-)
-
 type dataProcessor struct {
 	accountsIndexer   AccountsIndexerHandler
 	accountsProcessor AccountsProcessorHandler
@@ -37,7 +33,11 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 		return err
 	}
 
-	accountsES := dp.getAccountsESDatabase(addresses)
+	accountsES, err := dp.getAccountsESDatabase(addresses)
+	if err != nil {
+		return err
+	}
+
 	preparedAccounts := dp.accountsProcessor.PrepareAccountsForReindexing(accountsES, accountsRest)
 
 	newIndex, err := dp.cloneAccountsIndex()
@@ -68,29 +68,10 @@ func (dp *dataProcessor) cloneAccountsIndex() (string, error) {
 	return newIndex, nil
 }
 
-func (dp *dataProcessor) getAccountsESDatabase(addresses []string) map[string]*data.AccountInfoWithStakeValues {
+func (dp *dataProcessor) getAccountsESDatabase(addresses []string) (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from elasticseach database")
 
-	accountsES := make(map[string]*data.AccountInfoWithStakeValues)
-	for idx := 0; idx < len(addresses); idx += numAddressesInBulk {
-		from := idx
-		to := idx + numAddressesInBulk
-
-		if to > len(addresses) {
-			to = len(addresses)
-		}
-
-		newSliceOfAddresses := make([]string, numAddressesInBulk)
-		copy(newSliceOfAddresses, addresses[from:to])
-		accounts, errGet := dp.accountsIndexer.GetAccounts(newSliceOfAddresses, accountsIndex)
-		if errGet != nil {
-			log.Warn("dataProcessor.getAccountsESDatabase: cannot get accounts", "error", errGet)
-			continue
-		}
-		mergeAccountsMaps(accountsES, accounts)
-	}
-
-	return accountsES
+	return dp.accountsIndexer.GetAccounts(addresses, accountsIndex)
 }
 
 func mergeAccountsMaps(dst, src map[string]*data.AccountInfoWithStakeValues) {
