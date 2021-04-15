@@ -36,7 +36,7 @@ version should be 1.12.4.
  $ go build
 ```
 
-#### Step 3: Run manager
+#### Step 3: run manager
 ```
  $ ./manager --config="pathToConfig/config.toml"
 ```
