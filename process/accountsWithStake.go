@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/tidwall/gjson"
@@ -37,7 +38,7 @@ func newAccountsGetter(
 	}, nil
 }
 
-func (ag *accountsGetter) getLegacyDelegatorsAccounts() (map[string]string, error) {
+func (ag *accountsGetter) getLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
 
 	activeListAccounts, err := ag.getFullActiveListAccounts()
@@ -50,22 +51,27 @@ func (ag *accountsGetter) getLegacyDelegatorsAccounts() (map[string]string, erro
 		return nil, err
 	}
 
-	mergedMaps := make(map[string]string)
+	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
 	for key, value := range activeListAccounts {
-		mergedMaps[key] = value
+		accountsMap[key] = &data.AccountInfoWithStakeValues{
+			StakeInfo: data.StakeInfo{
+				DelegationLegacyActive:    value,
+				DelegationLegacyActiveNum: convert.ComputeBalanceAsFloat(value),
+			},
+		}
 	}
 
 	for key, value := range fullWaitingListAccounts {
-		_, ok := mergedMaps[key]
+		_, ok := accountsMap[key]
 		if !ok {
-			mergedMaps[key] = value
-			continue
+			accountsMap[key] = &data.AccountInfoWithStakeValues{}
 		}
 
-		mergedMaps[key] = computeTotalBalance(mergedMaps[key], value)
+		accountsMap[key].DelegationLegacyWaiting = value
+		accountsMap[key].DelegationLegacyWaitingNum = convert.ComputeBalanceAsFloat(value)
 	}
 
-	return mergedMaps, nil
+	return accountsMap, nil
 }
 
 func (ag *accountsGetter) getFullActiveListAccounts() (map[string]string, error) {
@@ -104,7 +110,7 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	return accountsStake, nil
 }
 
-func (ag *accountsGetter) getValidatorsAccounts() (map[string]string, error) {
+func (ag *accountsGetter) getValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from validators contract")
 
 	genericApiResponse := &data.GenericAPIResponse{}
@@ -123,15 +129,22 @@ func (ag *accountsGetter) getValidatorsAccounts() (map[string]string, error) {
 		return nil, err
 	}
 
-	accountsStake := make(map[string]string, len(accountsInfo))
+	accountsStake := make(map[string]*data.AccountInfoWithStakeValues)
 	for _, acct := range accountsInfo {
-		accountsStake[acct.Address] = acct.Total
+		accountsStake[acct.Address] = &data.AccountInfoWithStakeValues{
+			StakeInfo: data.StakeInfo{
+				ValidatorsActive:    acct.Staked,
+				ValidatorsActiveNum: convert.ComputeBalanceAsFloat(acct.Staked),
+				ValidatorTopUp:      acct.TopUp,
+				ValidatorTopUpNum:   convert.ComputeBalanceAsFloat(acct.TopUp),
+			},
+		}
 	}
 
 	return accountsStake, nil
 }
 
-func (ag *accountsGetter) getDelegatorsAccounts() (map[string]string, error) {
+func (ag *accountsGetter) getDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from delegation manager contracts")
 
 	genericApiResponse := &data.GenericAPIResponse{}
@@ -151,9 +164,14 @@ func (ag *accountsGetter) getDelegatorsAccounts() (map[string]string, error) {
 		return nil, err
 	}
 
-	accountsStake := make(map[string]string, len(accountsInfo))
+	accountsStake := make(map[string]*data.AccountInfoWithStakeValues)
 	for _, acct := range accountsInfo {
-		accountsStake[acct.DelegatorAddress] = acct.Total
+		accountsStake[acct.DelegatorAddress] = &data.AccountInfoWithStakeValues{
+			StakeInfo: data.StakeInfo{
+				Delegation:    acct.Total,
+				DelegationNum: convert.ComputeBalanceAsFloat(acct.Total),
+			},
+		}
 	}
 
 	return accountsStake, nil

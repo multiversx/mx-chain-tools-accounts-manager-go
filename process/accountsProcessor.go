@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	dataTypes "github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/tidwall/gjson"
 )
 
@@ -27,7 +27,7 @@ func NewAccountsProcessor(restClient RestClientHandler, acctsGetter accountsGett
 }
 
 // GetAllAccountsWithStake will return all accounts with stake
-func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.AccountInfo, []string, error) {
+func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.AccountInfoWithStakeValues, []string, error) {
 	legacyDelegators, err := ap.getLegacyDelegatorsAccounts()
 	if err != nil {
 		return nil, nil, err
@@ -45,17 +45,34 @@ func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.Account
 
 	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators)
 
+	calculateTotalStakeForAccounts(allAccounts)
+
 	return allAccounts, allAddresses, nil
 }
 
-func (ap *accountsProcessor) mergeAccounts(legacyDelegators, validators, delegators map[string]string) (map[string]*data.AccountInfo, []string) {
-	allAddresses := make([]string, 0)
-	mergedAccounts := make(map[string]*data.AccountInfo)
+func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithStakeValues) {
+	for _, account := range accounts {
+		totalStake, totalStakeNum := computeTotalBalance(
+			account.DelegationLegacyWaiting,
+			account.DelegationLegacyActive,
+			account.ValidatorsActive,
+			account.ValidatorTopUp,
+			account.Delegation,
+		)
 
-	for address, stakedLegacyDelegation := range legacyDelegators {
-		mergedAccounts[address] = &data.AccountInfo{
-			ValueStakedLegacyDelegation: stakedLegacyDelegation,
-		}
+		account.TotalStake = totalStake
+		account.TotalStakeNum = totalStakeNum
+	}
+}
+
+func (ap *accountsProcessor) mergeAccounts(
+	legacyDelegators, validators, delegators map[string]*data.AccountInfoWithStakeValues,
+) (map[string]*data.AccountInfoWithStakeValues, []string) {
+	allAddresses := make([]string, 0)
+	mergedAccounts := make(map[string]*data.AccountInfoWithStakeValues)
+
+	for address, legacyDelegator := range legacyDelegators {
+		mergedAccounts[address] = legacyDelegator
 
 		allAddresses = append(allAddresses, address)
 	}
@@ -63,20 +80,32 @@ func (ap *accountsProcessor) mergeAccounts(legacyDelegators, validators, delegat
 	for address, stakedValidators := range validators {
 		_, ok := mergedAccounts[address]
 		if !ok {
-			mergedAccounts[address] = &data.AccountInfo{}
+			mergedAccounts[address] = stakedValidators
+
+			allAddresses = append(allAddresses, address)
+			continue
 		}
 
-		mergedAccounts[address].ValueStakedValidators = stakedValidators
+		mergedAccounts[address].ValidatorsActive = stakedValidators.ValidatorsActive
+		mergedAccounts[address].ValidatorsActiveNum = stakedValidators.ValidatorsActiveNum
+		mergedAccounts[address].ValidatorTopUp = stakedValidators.ValidatorTopUp
+		mergedAccounts[address].ValidatorTopUpNum = stakedValidators.ValidatorTopUpNum
+
 		allAddresses = append(allAddresses, address)
 	}
 
 	for address, stakedDelegators := range delegators {
 		_, ok := mergedAccounts[address]
 		if !ok {
-			mergedAccounts[address] = &data.AccountInfo{}
+			mergedAccounts[address] = stakedDelegators
+
+			allAddresses = append(allAddresses, address)
+			continue
 		}
 
-		mergedAccounts[address].ValueStakedDelegation = stakedDelegators
+		mergedAccounts[address].Delegation = stakedDelegators.Delegation
+		mergedAccounts[address].DelegationNum = stakedDelegators.DelegationNum
+
 		allAddresses = append(allAddresses, address)
 	}
 
@@ -84,26 +113,31 @@ func (ap *accountsProcessor) mergeAccounts(legacyDelegators, validators, delegat
 }
 
 // PrepareAccountsForReindexing will prepare accounts for reindexing
-func (ap *accountsProcessor) PrepareAccountsForReindexing(accountsES, accountsRest map[string]*data.AccountInfo) map[string]*data.AccountInfo {
-	accounts := make(map[string]*data.AccountInfo)
+func (ap *accountsProcessor) PrepareAccountsForReindexing(
+	accountsES, accountsRest map[string]*data.AccountInfoWithStakeValues,
+) map[string]*data.AccountInfoWithStakeValues {
+	accounts := make(map[string]*data.AccountInfoWithStakeValues)
 
 	for address, account := range accountsES {
 		accounts[address] = account
 	}
 
-	for address, account := range accountsRest {
+	for address, accountRest := range accountsRest {
 		_, ok := accounts[address]
 		if !ok {
 			// this should never happen because accountsES and accountsRest should have same addresses
-			accounts[address] = &data.AccountInfo{}
+			accounts[address] = &data.AccountInfoWithStakeValues{}
 		}
 
-		accounts[address].TotalBalanceWithStake = computeTotalBalance(
+		accounts[address].StakeInfo = accountRest.StakeInfo
+
+		totalBalanceWithStake, totalBalanceWithStakeNum := computeTotalBalance(
 			accounts[address].Balance,
-			account.ValueStakedDelegation,
-			account.ValueStakedLegacyDelegation,
-			account.ValueStakedValidators,
+			accountRest.TotalStake,
 		)
+
+		accounts[address].TotalBalanceWithStake = totalBalanceWithStake
+		accounts[address].TotalBalanceWithStakeNum = totalBalanceWithStakeNum
 	}
 
 	return accounts
@@ -111,7 +145,7 @@ func (ap *accountsProcessor) PrepareAccountsForReindexing(accountsES, accountsRe
 
 // PrepareAccountsForReindexing will compute cloned accounts index based on current epoch
 func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
-	genericAPIResponse := &dataTypes.GenericAPIResponse{}
+	genericAPIResponse := &data.GenericAPIResponse{}
 	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse)
 	if err != nil {
 		return "", err
@@ -125,11 +159,12 @@ func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
 	return fmt.Sprintf("%s_%s", accountsIndex, epoch.String()), nil
 }
 
-func computeTotalBalance(balances ...string) string {
+func computeTotalBalance(balances ...string) (string, float64) {
 	totalBalance := big.NewInt(0)
+	totalBalanceFloat := float64(0)
 
 	if len(balances) == 0 {
-		return "0"
+		return "0", 0
 	}
 
 	for _, balance := range balances {
@@ -139,7 +174,8 @@ func computeTotalBalance(balances ...string) string {
 		}
 
 		totalBalance = totalBalance.Add(totalBalance, balanceBig)
+		totalBalanceFloat += convert.ComputeBalanceAsFloat(balance)
 	}
 
-	return totalBalance.String()
+	return totalBalance.String(), totalBalanceFloat
 }

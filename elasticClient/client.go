@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -71,6 +72,10 @@ func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
 	count := 0
 	errorsString := ""
 	for _, item := range response.Items {
+		if item.Index.Status < http.StatusBadRequest {
+			continue
+		}
+
 		count++
 		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
 
@@ -162,6 +167,24 @@ func (ec *esClient) CloneIndex(index, targetIndex string) (cloned bool, err erro
 
 	cloned = true
 	return
+}
+
+// PutMapping will put mapping for a given index
+func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
+	res, err := ec.client.Indices.PutMapping(
+		body,
+		ec.client.Indices.PutMapping.WithIndex(targetIndex),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	return nil
 }
 
 // UnsetReadOnly will unset property "read-only" of an elasticsearch index

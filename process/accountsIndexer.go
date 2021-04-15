@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	dataManager "github.com/ElrondNetwork/elrond-accounts-manager/data"
+	dataIndexer "github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/tidwall/gjson"
 )
 
@@ -22,14 +22,14 @@ func NewAccountsIndexer(elasticClient ElasticClientHandler) (*accountsIndexer, e
 }
 
 // GetAccounts will get accounts by addresses from a given index
-func (ai *accountsIndexer) GetAccounts(addresses []string, index string) (map[string]*data.AccountInfo, error) {
+func (ai *accountsIndexer) GetAccounts(addresses []string, index string) (map[string]*data.AccountInfoWithStakeValues, error) {
 	response, err := ai.elasticClient.DoMultiGet(addresses, index)
 	if err != nil {
 		return nil, err
 	}
 
-	accounts := make(map[string]*data.AccountInfo)
-	accountsResponse := make([]dataManager.AccountsResponseES, 0)
+	accounts := make(map[string]*data.AccountInfoWithStakeValues)
+	accountsResponse := make([]data.AccountsResponseES, 0)
 	accountsGJson := gjson.Get(string(response), "docs")
 	err = json.Unmarshal([]byte(accountsGJson.String()), &accountsResponse)
 	if err != nil {
@@ -41,14 +41,14 @@ func (ai *accountsIndexer) GetAccounts(addresses []string, index string) (map[st
 			continue
 		}
 
-		accounts[acct.Account.Address] = &acct.Account
+		accounts[acct.ID] = &acct.Account
 	}
 
 	return accounts, nil
 }
 
 // IndexAccounts will index provided accounts in a given index
-func (ai *accountsIndexer) IndexAccounts(accounts map[string]*data.AccountInfo, index string) error {
+func (ai *accountsIndexer) IndexAccounts(accounts map[string]*data.AccountInfoWithStakeValues, index string) error {
 	buffSlice, err := serializeAccounts(accounts)
 	if err != nil {
 		return err
@@ -63,8 +63,8 @@ func (ai *accountsIndexer) IndexAccounts(accounts map[string]*data.AccountInfo, 
 	return nil
 }
 
-func serializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func serializeAccounts(accounts map[string]*data.AccountInfoWithStakeValues) ([]*bytes.Buffer, error) {
+	buffSlice := dataIndexer.NewBufferSlice()
 	for address, acc := range accounts {
 		meta, serializedData, err := prepareSerializedAccountInfo(address, acc)
 		if err != nil {
@@ -82,7 +82,7 @@ func serializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, 
 
 func prepareSerializedAccountInfo(
 	address string,
-	account *data.AccountInfo,
+	account *data.AccountInfoWithStakeValues,
 ) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)

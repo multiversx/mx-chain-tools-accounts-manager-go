@@ -63,9 +63,9 @@ type SCQuery struct {
 
 // AccountsResponseES defines the structure of a response
 type AccountsResponseES struct {
-	ID      string           `json:"_id"`
-	Found   bool             `json:"found"`
-	Account data.AccountInfo `json:"_source"`
+	ID      string                     `json:"_id"`
+	Found   bool                       `json:"found"`
+	Account AccountInfoWithStakeValues `json:"_source"`
 }
 
 // BulkRequestResponse defines the structure of a bulk request response
@@ -80,4 +80,28 @@ type BulkRequestResponse struct {
 			} `json:"error"`
 		} `json:"index"`
 	} `json:"items"`
+}
+
+// AccountInfoWithStakeValues extends the structure data.AccountInfo with stake values
+type AccountInfoWithStakeValues struct {
+	data.AccountInfo
+	StakeInfo
+}
+
+// StakeInfo is the structure that contains all information about stake for an account
+type StakeInfo struct {
+	DelegationLegacyWaiting    string  `json:"delegationLegacyWaiting,omitempty"`
+	DelegationLegacyWaitingNum float64 `json:"delegationLegacyWaitingNum,omitempty"`
+	DelegationLegacyActive     string  `json:"delegationLegacyActive,omitempty"`
+	DelegationLegacyActiveNum  float64 `json:"delegationLegacyActiveNum,omitempty"`
+	ValidatorsActive           string  `json:"validatorsActive,omitempty"`
+	ValidatorsActiveNum        float64 `json:"validatorsActiveNum,omitempty"`
+	ValidatorTopUp             string  `json:"validatorsTopUp,omitempty"`
+	ValidatorTopUpNum          float64 `json:"validatorsTopUpNum,omitempty"`
+	Delegation                 string  `json:"delegation,omitempty"`
+	DelegationNum              float64 `json:"delegationNum,omitempty"`
+	TotalStake                 string  `json:"totalStake,omitempty"`
+	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
+	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
+	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
 }

@@ -3,12 +3,13 @@ package process
 import (
 	"bytes"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 )
 
 // ElasticClientHandler defines what an elastic client should be able do
 type ElasticClientHandler interface {
 	CloneIndex(index, targetIndex string) (cloned bool, err error)
+	PutMapping(targetIndex string, body *bytes.Buffer) error
 	WaitYellowStatus() error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoMultiGet(ids []string, index string) ([]byte, error)
@@ -23,24 +24,24 @@ type RestClientHandler interface {
 
 // AccountsIndexerHandler defines what an accounts indexer should be able do
 type AccountsIndexerHandler interface {
-	GetAccounts(addresses []string, index string) (map[string]*data.AccountInfo, error)
-	IndexAccounts(accounts map[string]*data.AccountInfo, index string) error
+	GetAccounts(addresses []string, index string) (map[string]*data.AccountInfoWithStakeValues, error)
+	IndexAccounts(accounts map[string]*data.AccountInfoWithStakeValues, index string) error
 }
 
 // AccountsProcessorHandler defines what an accounts processor should be able do
 type AccountsProcessorHandler interface {
-	GetAllAccountsWithStake() (map[string]*data.AccountInfo, []string, error)
-	PrepareAccountsForReindexing(accountsES, accountsRest map[string]*data.AccountInfo) map[string]*data.AccountInfo
+	GetAllAccountsWithStake() (map[string]*data.AccountInfoWithStakeValues, []string, error)
+	PrepareAccountsForReindexing(accountsES, accountsRest map[string]*data.AccountInfoWithStakeValues) map[string]*data.AccountInfoWithStakeValues
 	ComputeClonedAccountsIndex() (string, error)
 }
 
 type accountsGetterHandler interface {
-	getLegacyDelegatorsAccounts() (map[string]string, error)
-	getValidatorsAccounts() (map[string]string, error)
-	getDelegatorsAccounts() (map[string]string, error)
+	getLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	getValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	getDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 }
 
 // Cloner defines what a clone should be able to do
 type Cloner interface {
-	CloneIndex(index, newIndex string) error
+	CloneIndex(index, newIndex string, body *bytes.Buffer) error
 }

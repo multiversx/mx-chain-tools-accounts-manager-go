@@ -3,7 +3,8 @@ package process
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/ElrondNetwork/elrond-accounts-manager/mappings"
 )
 
 const (
@@ -38,12 +39,8 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 
 	accountsES := dp.getAccountsESDatabase(addresses)
 	preparedAccounts := dp.accountsProcessor.PrepareAccountsForReindexing(accountsES, accountsRest)
-	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
-	if err != nil {
-		return err
-	}
 
-	err = dp.cloner.CloneIndex(accountsIndex, newIndex)
+	newIndex, err := dp.cloneAccountsIndex()
 	if err != nil {
 		return err
 	}
@@ -55,10 +52,26 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 	return dp.accountsIndexer.IndexAccounts(preparedAccounts, newIndex)
 }
 
-func (dp *dataProcessor) getAccountsESDatabase(addresses []string) map[string]*data.AccountInfo {
+func (dp *dataProcessor) cloneAccountsIndex() (string, error) {
+	defer logExecutionTime(time.Now(), "Cloned accounts index")
+
+	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
+	if err != nil {
+		return "", err
+	}
+
+	err = dp.cloner.CloneIndex(accountsIndex, newIndex, mappings.AccountsCloned.ToBuffer())
+	if err != nil {
+		return "", err
+	}
+
+	return newIndex, nil
+}
+
+func (dp *dataProcessor) getAccountsESDatabase(addresses []string) map[string]*data.AccountInfoWithStakeValues {
 	defer logExecutionTime(time.Now(), "Fetched accounts from elasticseach database")
 
-	accountsES := make(map[string]*data.AccountInfo)
+	accountsES := make(map[string]*data.AccountInfoWithStakeValues)
 	for idx := 0; idx < len(addresses); idx += numAddressesInBulk {
 		from := idx
 		to := idx + numAddressesInBulk
@@ -80,7 +93,7 @@ func (dp *dataProcessor) getAccountsESDatabase(addresses []string) map[string]*d
 	return accountsES
 }
 
-func mergeAccountsMaps(dst, src map[string]*data.AccountInfo) {
+func mergeAccountsMaps(dst, src map[string]*data.AccountInfoWithStakeValues) {
 	for key, value := range src {
 		dst[key] = value
 	}

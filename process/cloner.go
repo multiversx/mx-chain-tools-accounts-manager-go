@@ -1,6 +1,7 @@
 package process
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -41,7 +42,7 @@ func NewCloner(ec ElasticClientHandler) (*cloner, error) {
 // -- if index was cloned but an error was returned
 //       ---> this means that the state of cloned index is still "read-only"
 //       ---> in this case Cloner will try to unset "read-only" property of the cloned index until success
-func (c *cloner) CloneIndex(index, newIndex string) error {
+func (c *cloner) CloneIndex(index, newIndex string, body *bytes.Buffer) error {
 TRY:
 	cloned, err := c.elasticClient.CloneIndex(index, newIndex)
 
@@ -67,6 +68,11 @@ TRY:
 	c.countTriesClone = 0
 
 	err = c.elasticClient.WaitYellowStatus()
+	if err != nil {
+		return err
+	}
+
+	err = c.elasticClient.PutMapping(newIndex, body)
 	if err != nil {
 		return err
 	}
