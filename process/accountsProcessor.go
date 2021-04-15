@@ -14,31 +14,31 @@ const (
 )
 
 type accountsProcessor struct {
-	accountsGetterHandler
+	AccountsGetterHandler
 	restClient RestClientHandler
 }
 
 // NewAccountsProcessor will create a new instance of accountsProcessor
-func NewAccountsProcessor(restClient RestClientHandler, acctsGetter accountsGetterHandler) (*accountsProcessor, error) {
+func NewAccountsProcessor(restClient RestClientHandler, acctsGetter AccountsGetterHandler) (*accountsProcessor, error) {
 	return &accountsProcessor{
 		restClient:            restClient,
-		accountsGetterHandler: acctsGetter,
+		AccountsGetterHandler: acctsGetter,
 	}, nil
 }
 
 // GetAllAccountsWithStake will return all accounts with stake
 func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.AccountInfoWithStakeValues, []string, error) {
-	legacyDelegators, err := ap.getLegacyDelegatorsAccounts()
+	legacyDelegators, err := ap.GetLegacyDelegatorsAccounts()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	validators, err := ap.getValidatorsAccounts()
+	validators, err := ap.GetValidatorsAccounts()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	delegators, err := ap.getDelegatorsAccounts()
+	delegators, err := ap.GetDelegatorsAccounts()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -90,8 +90,6 @@ func (ap *accountsProcessor) mergeAccounts(
 		mergedAccounts[address].ValidatorsActiveNum = stakedValidators.ValidatorsActiveNum
 		mergedAccounts[address].ValidatorTopUp = stakedValidators.ValidatorTopUp
 		mergedAccounts[address].ValidatorTopUpNum = stakedValidators.ValidatorTopUpNum
-
-		allAddresses = append(allAddresses, address)
 	}
 
 	for address, stakedDelegators := range delegators {
@@ -105,8 +103,6 @@ func (ap *accountsProcessor) mergeAccounts(
 
 		mergedAccounts[address].Delegation = stakedDelegators.Delegation
 		mergedAccounts[address].DelegationNum = stakedDelegators.DelegationNum
-
-		allAddresses = append(allAddresses, address)
 	}
 
 	return mergedAccounts, allAddresses

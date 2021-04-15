@@ -17,7 +17,15 @@ var dividerForDenomination = math.Pow(10, float64(core.MaxInt(denomination, 0)))
 
 // ComputeBalanceAsFloat will compute a string balance in float
 func ComputeBalanceAsFloat(balance string) float64 {
-	balanceBigInt, _ := big.NewInt(0).SetString(balance, 10)
+	if balance == "" {
+		return 0
+	}
+
+	balanceBigInt, ok := big.NewInt(0).SetString(balance, 10)
+	if !ok {
+		return 0
+	}
+
 	balanceBigFloat := big.NewFloat(0).SetInt(balanceBigInt)
 	balanceFloat64, _ := balanceBigFloat.Float64()
 

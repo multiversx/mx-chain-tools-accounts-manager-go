@@ -30,7 +30,7 @@ func CreateDataProcessor(cfg *config.Config) (*dataProcessor, error) {
 		return nil, err
 	}
 
-	acctGetter, err := newAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter)
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {

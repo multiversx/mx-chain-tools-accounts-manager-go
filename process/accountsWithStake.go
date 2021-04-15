@@ -26,7 +26,8 @@ type accountsGetter struct {
 	pubKeyConverter           core.PubkeyConverter
 }
 
-func newAccountsGetter(
+// NewAccountsGetter will create a new instance of accountsGetter
+func NewAccountsGetter(
 	restClient RestClientHandler,
 	delegationContractAddress string,
 	pubKeyConverter core.PubkeyConverter,
@@ -38,7 +39,8 @@ func newAccountsGetter(
 	}, nil
 }
 
-func (ag *accountsGetter) getLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+// GetLegacyDelegatorsAccounts will fetch all accounts with stake from API
+func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
 
 	activeListAccounts, err := ag.getFullActiveListAccounts()
@@ -110,7 +112,8 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	return accountsStake, nil
 }
 
-func (ag *accountsGetter) getValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+// GetValidatorsAccounts will fetch all validators accounts
+func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from validators contract")
 
 	genericApiResponse := &data.GenericAPIResponse{}
@@ -144,7 +147,8 @@ func (ag *accountsGetter) getValidatorsAccounts() (map[string]*data.AccountInfoW
 	return accountsStake, nil
 }
 
-func (ag *accountsGetter) getDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+// // GetDelegatorsAccounts will fetch all delegators accounts
+func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from delegation manager contracts")
 
 	genericApiResponse := &data.GenericAPIResponse{}

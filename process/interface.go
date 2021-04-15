@@ -35,10 +35,11 @@ type AccountsProcessorHandler interface {
 	ComputeClonedAccountsIndex() (string, error)
 }
 
-type accountsGetterHandler interface {
-	getLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
-	getValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
-	getDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+// AccountsGetterHandler defines what an accounts getter should be able do
+type AccountsGetterHandler interface {
+	GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	GetValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 }
 
 // Cloner defines what a clone should be able to do
