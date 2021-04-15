@@ -36,7 +36,11 @@ func NewCloner(ec ElasticClientHandler) (*cloner, error) {
 	}, nil
 }
 
-// CloneIndex will clone a given index
+// CloneIndex will try to clone a given index
+// -- if clone of the index fails --> will try again to clone index ( max retries 10)
+// -- if index was cloned but an error was returned
+//       ---> this means that the state of cloned index is still "read-only"
+//       ---> in this case Cloner will try to unset "read-only" property of the cloned index until success
 func (c *cloner) CloneIndex(index, newIndex string) error {
 TRY:
 	cloned, err := c.elasticClient.CloneIndex(index, newIndex)
