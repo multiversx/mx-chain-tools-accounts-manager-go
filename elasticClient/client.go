@@ -9,6 +9,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 const numOfErrorsToExtractBulkResponse = 5
@@ -44,11 +45,7 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return fmt.Errorf("%s", res.String())
 	}
 
-	defer func() {
-		if res != nil && res.Body != nil {
-			_ = res.Body.Close()
-		}
-	}()
+	defer closeBody(res)
 
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -101,11 +98,7 @@ func (ec *esClient) DoMultiGet(ids []string, index string) ([]byte, error) {
 		return nil, fmt.Errorf("%s", res.String())
 	}
 
-	defer func() {
-		if res != nil && res.Body != nil {
-			_ = res.Body.Close()
-		}
-	}()
+	defer closeBody(res)
 
 	bodyBytes, errRead := ioutil.ReadAll(res.Body)
 	if errRead != nil {
@@ -127,6 +120,8 @@ func (ec *esClient) WaitYellowStatus() error {
 	if res.IsError() {
 		return fmt.Errorf("%s", res.String())
 	}
+
+	defer closeBody(res)
 
 	return nil
 }
@@ -165,6 +160,8 @@ func (ec *esClient) CloneIndex(index, targetIndex string) (cloned bool, err erro
 		return
 	}
 
+	defer closeBody(res)
+
 	cloned = true
 	return
 }
@@ -183,6 +180,8 @@ func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
 	if res.IsError() {
 		return fmt.Errorf("%s", res.String())
 	}
+
+	defer closeBody(res)
 
 	return nil
 }
@@ -211,5 +210,13 @@ func (ec *esClient) putSettings(readOnly bool, index string) error {
 		return fmt.Errorf("%s", res.String())
 	}
 
+	defer closeBody(res)
+
 	return nil
+}
+
+func closeBody(res *esapi.Response) {
+	if res != nil && res.Body != nil {
+		_ = res.Body.Close()
+	}
 }
