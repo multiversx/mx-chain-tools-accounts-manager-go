@@ -11,3 +11,20 @@
     Length = 32
     # Type specifies the type of public keys: hex or bech32
     Type = "bech32"
+
+[Cloner]
+    [ElasticSearchClient]
+        Address = "http://127.0.0.1:9200"
+        Username = ""
+        Password = ""
+
+[Reindexer]
+    [SourceElasticSearchClient]
+        Address = "http://127.0.0.1:9200"
+        Username = ""
+        Password = ""
+
+    [DestinationElasticSearchClient]
+        Address = "http://127.0.0.1:9200"
+        Username = ""
+        Password = ""

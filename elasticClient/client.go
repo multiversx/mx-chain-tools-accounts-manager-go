@@ -2,25 +2,31 @@ package elasticClient
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/tidwall/gjson"
 )
 
 const numOfErrorsToExtractBulkResponse = 5
+
+var log = logger.GetOrCreate("elasticClient")
 
 type esClient struct {
 	client *elasticsearch.Client
 }
 
 // NewElasticClient will create a new instance of an esClient
-func NewElasticClient(cfg elasticsearch.Config) (*esClient, error) {
-	elasticClient, err := elasticsearch.NewClient(cfg)
+func NewElasticClient(cfg data.EsClientConfig) (*esClient, error) {
+	elasticClient, err := elasticsearch.NewClient(unWrapEsConfig(cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -63,25 +69,6 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	}
 
 	return nil
-}
-
-func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
-	count := 0
-	errorsString := ""
-	for _, item := range response.Items {
-		if item.Index.Status < http.StatusBadRequest {
-			continue
-		}
-
-		count++
-		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
-
-		if count == numOfErrorsToExtractBulkResponse {
-			break
-		}
-	}
-
-	return fmt.Errorf("%s", errorsString)
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
@@ -186,9 +173,119 @@ func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
 	return nil
 }
 
+// PutTemplate will init an index and put the template
+func (ec *esClient) PutTemplate(index string, template *bytes.Buffer) error {
+	res, err := ec.client.Indices.PutTemplate(index, template)
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return fmt.Errorf("error response: %s", res)
+	}
+
+	defer closeBody(res)
+
+	return nil
+}
+
 // UnsetReadOnly will unset property "read-only" of an elasticsearch index
 func (ec *esClient) UnsetReadOnly(index string) error {
 	return ec.putSettings(false, index)
+}
+
+// DoScrollRequestAllDocuments will perform a documents request using scroll api
+func (ec *esClient) DoScrollRequestAllDocuments(
+	index string,
+	body []byte,
+	handlerFunc func(responseBytes []byte) error,
+) error {
+	// use a random interval in order to avoid AWS GET request cashing
+	randomNum := rand.Intn(50)
+	res, err := ec.client.Search(
+		ec.client.Search.WithSize(9000),
+		ec.client.Search.WithScroll(10*time.Minute+time.Duration(randomNum)*time.Millisecond),
+		ec.client.Search.WithContext(context.Background()),
+		ec.client.Search.WithIndex(index),
+		ec.client.Search.WithBody(bytes.NewBuffer(body)),
+	)
+	if err != nil {
+		return err
+	}
+
+	bodyBytes, err := getBytesFromResponse(res)
+	if err != nil {
+		return err
+	}
+
+	err = handlerFunc(bodyBytes)
+	if err != nil {
+		return err
+	}
+
+	scrollID := gjson.Get(string(bodyBytes), "_scroll_id")
+	return ec.iterateScroll(scrollID.String(), handlerFunc)
+}
+
+func (ec *esClient) iterateScroll(
+	scrollID string,
+	handlerFunc func(responseBytes []byte) error,
+) error {
+	if scrollID == "" {
+		return nil
+	}
+	defer func() {
+		err := ec.clearScroll(scrollID)
+		if err != nil {
+			log.Warn("cannot clear scroll ", err)
+		}
+	}()
+
+	for {
+		scrollBodyBytes, errScroll := ec.getScrollResponse(scrollID)
+		if errScroll != nil {
+			return errScroll
+		}
+
+		numberOfHits := gjson.Get(string(scrollBodyBytes), "hits.hits.#")
+		if numberOfHits.Int() < 1 {
+			return nil
+		}
+		err := handlerFunc(scrollBodyBytes)
+		if err != nil {
+			return err
+		}
+	}
+
+}
+
+func (ec *esClient) getScrollResponse(scrollID string) ([]byte, error) {
+	randomNum := rand.Intn(10000)
+	res, err := ec.client.Scroll(
+		ec.client.Scroll.WithScrollID(scrollID),
+		ec.client.Scroll.WithScroll(2*time.Minute+time.Duration(randomNum)*time.Millisecond),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return getBytesFromResponse(res)
+}
+
+func (ec *esClient) clearScroll(scrollID string) error {
+	resp, err := ec.client.ClearScroll(
+		ec.client.ClearScroll.WithScrollID(scrollID),
+	)
+	if err != nil {
+		return err
+	}
+	if resp.IsError() && resp.StatusCode != http.StatusNotFound {
+		return fmt.Errorf("error response: %s", resp)
+	}
+
+	defer closeBody(resp)
+
+	return nil
 }
 
 func (ec *esClient) setReadOnly(index string) error {
@@ -215,8 +312,7 @@ func (ec *esClient) putSettings(readOnly bool, index string) error {
 	return nil
 }
 
-func closeBody(res *esapi.Response) {
-	if res != nil && res.Body != nil {
-		_ = res.Body.Close()
-	}
+// IsInterfaceNil returns true if there is no value under the interface
+func (ec *esClient) IsInterfaceNil() bool {
+	return ec == nil
 }

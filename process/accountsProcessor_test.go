@@ -5,61 +5,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/mocks"
 	"github.com/stretchr/testify/require"
 )
-
-const (
-	zeros = "000000000000000000"
-)
-
-func TestAccountsProcessor_PrepareAccountsForReindexing(t *testing.T) {
-	t.Parallel()
-
-	ap, err := NewAccountsProcessor(&mocks.RestClientStub{}, &mocks.AccountsGetterStub{})
-	require.Nil(t, err)
-
-	accES1 := &data.AccountInfoWithStakeValues{}
-	accES1.Balance = "1" + zeros
-	accES1.BalanceNum = 1
-
-	accES2 := &data.AccountInfoWithStakeValues{}
-	accES1.Balance = "2" + zeros
-	accES2.BalanceNum = 2
-
-	accR1 := &data.AccountInfoWithStakeValues{}
-	accR1.Delegation = "3" + zeros
-	accR1.DelegationNum = 3
-
-	accR2 := &data.AccountInfoWithStakeValues{}
-	accR1.Delegation = "4" + zeros
-	accR2.DelegationNum = 4
-
-	addresses := []string{"1", "2"}
-
-	mES := map[string]*data.AccountInfoWithStakeValues{
-		addresses[0]: accES1,
-		addresses[1]: accES2,
-	}
-
-	mR := map[string]*data.AccountInfoWithStakeValues{
-		addresses[0]: accR1,
-		addresses[1]: accR2,
-	}
-
-	mReturn := ap.PrepareAccountsForReindexing(mES, mR)
-	require.Len(t, mReturn, 2)
-
-	for _, addr := range addresses {
-		require.Equal(t, mES[addr].Balance, mReturn[addr].Balance)
-		require.Equal(t, mES[addr].BalanceNum, mReturn[addr].BalanceNum)
-
-		require.Equal(t, mES[addr].DelegationNum, mReturn[addr].DelegationNum)
-		require.Equal(t, mES[addr].Delegation, mReturn[addr].Delegation)
-	}
-}
 
 func TestAccountsProcessor_GetAllAccountsWithStake(t *testing.T) {
 	t.Parallel()
@@ -156,17 +106,17 @@ func generateAccounts(acctType int, numAccounts int) []*data.AccountInfoWithStak
 		switch acctType {
 		case delegation:
 			acct.Delegation = generateRandomBigIntString()
-			acct.DelegationNum = convert.ComputeBalanceAsFloat(acct.Delegation)
+			acct.DelegationNum = core.ComputeBalanceAsFloat(acct.Delegation)
 		case validator:
 			acct.ValidatorsActive = generateRandomBigIntString()
-			acct.ValidatorsActiveNum = convert.ComputeBalanceAsFloat(acct.ValidatorsActive)
+			acct.ValidatorsActiveNum = core.ComputeBalanceAsFloat(acct.ValidatorsActive)
 			acct.ValidatorTopUp = generateRandomBigIntString()
-			acct.ValidatorTopUpNum = convert.ComputeBalanceAsFloat(acct.Delegation)
+			acct.ValidatorTopUpNum = core.ComputeBalanceAsFloat(acct.Delegation)
 		case delegationLegacy:
 			acct.DelegationLegacyActive = generateRandomBigIntString()
-			acct.DelegationLegacyActiveNum = convert.ComputeBalanceAsFloat(acct.DelegationLegacyActive)
+			acct.DelegationLegacyActiveNum = core.ComputeBalanceAsFloat(acct.DelegationLegacyActive)
 			acct.DelegationLegacyWaiting = generateRandomBigIntString()
-			acct.DelegationLegacyWaitingNum = convert.ComputeBalanceAsFloat(acct.DelegationLegacyWaiting)
+			acct.DelegationLegacyWaitingNum = core.ComputeBalanceAsFloat(acct.DelegationLegacyWaiting)
 		}
 
 		accts = append(accts, &acct)

@@ -1,4 +1,4 @@
-package process
+package cloner
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
@@ -25,12 +26,12 @@ const (
 
 type cloner struct {
 	backOffTime     time.Duration
-	elasticClient   ElasticClientHandler
+	elasticClient   crossIndex.ElasticClientHandler
 	countTriesClone int
 }
 
-// NewCloner will create a new instance of a cloner
-func NewCloner(ec ElasticClientHandler) (*cloner, error) {
+// New will create a new instance of a cloner
+func New(ec crossIndex.ElasticClientHandler) (*cloner, error) {
 	return &cloner{
 		elasticClient:   ec,
 		countTriesClone: 0,
@@ -102,4 +103,9 @@ func (c *cloner) increaseBackOffTime() {
 func checkIfErrorIsAlreadyExits(err error, newIndex string) bool {
 	return strings.Contains(err.Error(), "resource_already_exists_exception") &&
 		strings.Contains(err.Error(), newIndex)
+}
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (c *cloner) IsInterfaceNil() bool {
+	return c == nil
 }

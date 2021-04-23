@@ -1,10 +1,11 @@
-package accountsReindex
+package crossIndex
 
 import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/mappings"
 )
 
+// AllAccountsResponse is a structure that matches the response format for an all accounts request
 type AllAccountsResponse struct {
 	ScrollID string `json:"_scroll_id"`
 	Hits     struct {

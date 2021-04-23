@@ -9,17 +9,17 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process"
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIndex(t *testing.T) {
 	t.Skip("ignore this test")
 
-	cfg := elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
-		Username:  "",
-		Password:  "",
+	cfg := data.EsClientConfig{
+		Address:  "http://localhost:9200",
+		Username: "",
+		Password: "",
 	}
 	ec, err := elasticClient.NewElasticClient(cfg)
 	require.Nil(t, err)
@@ -32,7 +32,7 @@ func TestIndex(t *testing.T) {
 }
 
 func generateAccountsAndIndex(t *testing.T, numberOfAccounts int, handler process.ElasticClientHandler) {
-	ap, _ := process.NewAccountsIndexer(handler)
+	ap, _ := accountsIndexer.NewAccountsIndexer(handler)
 	err := ap.IndexAccounts(generateAccounts(numberOfAccounts), "accounts-000001")
 	require.Nil(t, err)
 

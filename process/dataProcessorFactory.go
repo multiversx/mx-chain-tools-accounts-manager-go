@@ -2,20 +2,25 @@ package process
 
 import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
+	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/cloner"
+	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/reindexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
+	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/restClient"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
-	"github.com/elastic/go-elasticsearch/v7"
 )
 
 // CreateDataProcessor will create a new instance of a data processor
-func CreateDataProcessor(cfg *config.Config) (*dataProcessor, error) {
-	elasticCfg := elasticsearch.Config{
-		Addresses: []string{cfg.GeneralConfig.ElasticDatabaseAddress},
-		Username:  cfg.GeneralConfig.Username,
-		Password:  cfg.GeneralConfig.Password,
+func CreateDataProcessor(cfg *config.Config, indexType string) (DataProcessor, error) {
+	if indexType == "clone" {
+		return getClonerDataProcessor(cfg)
 	}
-	esClient, err := elasticClient.NewElasticClient(elasticCfg)
+
+	return getReindexerDataProcessor(cfg)
+}
+
+func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
+	esClient, err := elasticClient.NewElasticClient(cfg.Cloner.ElasticSearchClient)
 	if err != nil {
 		return nil, err
 	}
@@ -37,15 +42,51 @@ func CreateDataProcessor(cfg *config.Config) (*dataProcessor, error) {
 		return nil, err
 	}
 
-	acctsIndexer, err := NewAccountsIndexer(esClient)
+	acctsIndexer, err := accountsIndexer.NewAccountsIndexer(esClient)
 	if err != nil {
 		return nil, err
 	}
 
-	indexCloner, err := NewCloner(esClient)
+	indexCloner, err := cloner.New(esClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewDataProcessor(acctsIndexer, acctsProcessor, indexCloner)
+	return NewClonerDataProcessor(acctsIndexer, acctsProcessor, indexCloner)
+}
+
+func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
+	sourceEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.SourceElasticSearchConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	destinationEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.DestinationElasticSeachConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	rClient, err := restClient.NewRestClient(cfg.GeneralConfig.APIUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter)
+
+	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
+	if err != nil {
+		return nil, err
+	}
+
+	reindexerProc, err := reindexer.New(sourceEsClient, destinationEsClient)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewReindexerDataProcessor(acctsProcessor, reindexerProc)
 }

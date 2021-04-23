@@ -105,3 +105,10 @@ type StakeInfo struct {
 	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
 }
+
+// EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct
+type EsClientConfig struct {
+	Address  string
+	Username string
+	Password string
+}

@@ -6,9 +6,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-go/core"
+	nodeCore "github.com/ElrondNetwork/elrond-go/core"
 	"github.com/tidwall/gjson"
 )
 
@@ -23,14 +23,14 @@ const (
 type accountsGetter struct {
 	restClient                RestClientHandler
 	delegationContractAddress string
-	pubKeyConverter           core.PubkeyConverter
+	pubKeyConverter           nodeCore.PubkeyConverter
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
 func NewAccountsGetter(
 	restClient RestClientHandler,
 	delegationContractAddress string,
-	pubKeyConverter core.PubkeyConverter,
+	pubKeyConverter nodeCore.PubkeyConverter,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
 		restClient:                restClient,
@@ -58,7 +58,7 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		accountsMap[key] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				DelegationLegacyActive:    value,
-				DelegationLegacyActiveNum: convert.ComputeBalanceAsFloat(value),
+				DelegationLegacyActiveNum: core.ComputeBalanceAsFloat(value),
 			},
 		}
 	}
@@ -70,7 +70,7 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		}
 
 		accountsMap[key].DelegationLegacyWaiting = value
-		accountsMap[key].DelegationLegacyWaitingNum = convert.ComputeBalanceAsFloat(value)
+		accountsMap[key].DelegationLegacyWaitingNum = core.ComputeBalanceAsFloat(value)
 	}
 
 	return accountsMap, nil
@@ -137,9 +137,9 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 		accountsStake[acct.Address] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				ValidatorsActive:    acct.Staked,
-				ValidatorsActiveNum: convert.ComputeBalanceAsFloat(acct.Staked),
+				ValidatorsActiveNum: core.ComputeBalanceAsFloat(acct.Staked),
 				ValidatorTopUp:      acct.TopUp,
-				ValidatorTopUpNum:   convert.ComputeBalanceAsFloat(acct.TopUp),
+				ValidatorTopUpNum:   core.ComputeBalanceAsFloat(acct.TopUp),
 			},
 		}
 	}
@@ -173,7 +173,7 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 		accountsStake[acct.DelegatorAddress] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				Delegation:    acct.Total,
-				DelegationNum: convert.ComputeBalanceAsFloat(acct.Total),
+				DelegationNum: core.ComputeBalanceAsFloat(acct.Total),
 			},
 		}
 	}

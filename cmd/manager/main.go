@@ -34,6 +34,11 @@ var (
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
 	}
+	typeFlag = cli.StringFlag{
+		Name:  "type",
+		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: clone)",
+		Value: "clone",
+	}
 )
 
 func main() {
@@ -46,6 +51,7 @@ func main() {
 		configurationFile,
 		logLevel,
 		logSaveFile,
+		typeFlag,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -77,7 +83,7 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	dataProc, err := process.CreateDataProcessor(generalConfig)
+	dataProc, err := process.CreateDataProcessor(generalConfig, ctx.GlobalString(typeFlag.Name))
 	if err != nil {
 		return err
 	}
