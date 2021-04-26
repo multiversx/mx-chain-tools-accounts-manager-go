@@ -1,8 +1,4 @@
 [GeneralConfig]
-    APIUrl = "http://localhost:9200"
-    ElasticDatabaseAddress = "http://localhost:9200"
-    Username         = ""
-    Password         = ""
     DelegationLegacyContractAddress = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 
 
@@ -29,6 +25,7 @@
         Username = ""
         Password = ""
 
-[ApiCredentials]
+[APIConfig]
+    APIUrl = "http://localhost:9200"
     Username = ""
     Password = ""

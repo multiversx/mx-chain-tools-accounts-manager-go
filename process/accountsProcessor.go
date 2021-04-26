@@ -111,7 +111,7 @@ func (ap *accountsProcessor) mergeAccounts(
 // PrepareAccountsForReindexing will compute cloned accounts index based on current epoch
 func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
 	genericAPIResponse := &data.GenericAPIResponse{}
-	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse)
+	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse, core.GetEmptyApiCredentials())
 	if err != nil {
 		return "", err
 	}

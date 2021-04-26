@@ -11,12 +11,11 @@ type Config struct {
 	AddressPubkeyConverter config.PubkeyConfig
 	Cloner                 ClonerConfig
 	Reindexer              ReindexerConfig
-	ApiCredentials         data.RestApiAuthenticationData
+	ApiConfig              APIConfig
 }
 
 // GeneralSettingsConfig will hold the general settings for an accounts manager
 type GeneralConfig struct {
-	APIUrl                          string
 	DelegationLegacyContractAddress string
 }
 
@@ -29,4 +28,11 @@ type ClonerConfig struct {
 type ReindexerConfig struct {
 	SourceElasticSearchConfig     data.EsClientConfig
 	DestinationElasticSeachConfig data.EsClientConfig
+}
+
+// APIConfig holds the configuration for the API
+type APIConfig struct {
+	URL      string
+	Username string
+	Password string
 }

@@ -2,6 +2,7 @@ package process
 
 import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/cloner"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/reindexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
@@ -25,7 +26,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	rClient, err := restClient.NewRestClient(cfg.GeneralConfig.APIUrl)
+	rClient, err := restClient.NewRestClient(cfg.ApiConfig.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,8 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, cfg.ApiCredentials)
+	authenticationData := core.FetchAuthenticationData(cfg.ApiConfig)
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {
@@ -66,7 +68,7 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	rClient, err := restClient.NewRestClient(cfg.GeneralConfig.APIUrl)
+	rClient, err := restClient.NewRestClient(cfg.ApiConfig.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +78,8 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, cfg.ApiCredentials)
+	authenticationData := core.FetchAuthenticationData(cfg.ApiConfig)
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {
