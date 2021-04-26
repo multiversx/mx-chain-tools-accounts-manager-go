@@ -24,6 +24,7 @@ type accountsGetter struct {
 	restClient                RestClientHandler
 	delegationContractAddress string
 	pubKeyConverter           nodeCore.PubkeyConverter
+	authenticationData        data.RestApiAuthenticationData
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
@@ -31,11 +32,13 @@ func NewAccountsGetter(
 	restClient RestClientHandler,
 	delegationContractAddress string,
 	pubKeyConverter nodeCore.PubkeyConverter,
+	authenticationData data.RestApiAuthenticationData,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
 		restClient:                restClient,
 		delegationContractAddress: delegationContractAddress,
 		pubKeyConverter:           pubKeyConverter,
+		authenticationData:        authenticationData,
 	}, nil
 }
 
@@ -92,7 +95,7 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	}
 
 	responseVmValue := &data.ResponseVmValue{}
-	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue)
+	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue, core.GetEmptyApiCredentials())
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +120,7 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 	defer logExecutionTime(time.Now(), "Fetched accounts from validators contract")
 
 	genericApiResponse := &data.GenericAPIResponse{}
-	err := ag.restClient.CallGetRestEndPoint(pathValidatorsStake, genericApiResponse)
+	err := ag.restClient.CallGetRestEndPoint(pathValidatorsStake, genericApiResponse, ag.authenticationData)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +155,7 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 	defer logExecutionTime(time.Now(), "Fetched accounts from delegation manager contracts")
 
 	genericApiResponse := &data.GenericAPIResponse{}
-	err := ag.restClient.CallGetRestEndPoint(pathDelegatorStake, genericApiResponse)
+	err := ag.restClient.CallGetRestEndPoint(pathDelegatorStake, genericApiResponse, ag.authenticationData)
 	if err != nil {
 		return nil, err
 	}

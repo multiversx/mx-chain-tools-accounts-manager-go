@@ -28,3 +28,7 @@
         Address = "http://127.0.0.1:9200"
         Username = ""
         Password = ""
+
+[ApiCredentials]
+    Username = ""
+    Password = ""

@@ -20,8 +20,8 @@ type ElasticClientHandler interface {
 
 // // RestClientHandler defines what a rest client should be able do
 type RestClientHandler interface {
-	CallGetRestEndPoint(path string, value interface{}) error
-	CallPostRestEndPoint(path string, data interface{}, response interface{}) error
+	CallGetRestEndPoint(path string, value interface{}, authenticationData data.RestApiAuthenticationData) error
+	CallPostRestEndPoint(path string, data interface{}, response interface{}, authenticationData data.RestApiAuthenticationData) error
 }
 
 // AccountsIndexerHandler defines what an accounts indexer should be able do

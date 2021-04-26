@@ -11,6 +11,7 @@ type Config struct {
 	AddressPubkeyConverter config.PubkeyConfig
 	Cloner                 ClonerConfig
 	Reindexer              ReindexerConfig
+	ApiCredentials         data.RestApiAuthenticationData
 }
 
 // GeneralSettingsConfig will hold the general settings for an accounts manager

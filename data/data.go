@@ -112,3 +112,9 @@ type EsClientConfig struct {
 	Username string
 	Password string
 }
+
+// RestApiAuthenticationData holds the data to be used when authorizing API requests
+type RestApiAuthenticationData struct {
+	Username string
+	Password string
+}
