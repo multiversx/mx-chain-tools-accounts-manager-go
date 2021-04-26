@@ -10,8 +10,8 @@ type Config struct {
 	GeneralConfig          GeneralConfig
 	AddressPubkeyConverter config.PubkeyConfig
 	Cloner                 ClonerConfig
-	Reindexer              ReindexerConfig
-	ApiConfig              APIConfig
+	Reindexer              Reindexer
+	APIConfig              APIConfig
 }
 
 // GeneralSettingsConfig will hold the general settings for an accounts manager
@@ -24,10 +24,10 @@ type ClonerConfig struct {
 	ElasticSearchClient data.EsClientConfig
 }
 
-// ReindexerConfig holds the configuration for a reindexer
-type ReindexerConfig struct {
-	SourceElasticSearchConfig     data.EsClientConfig
-	DestinationElasticSeachConfig data.EsClientConfig
+// Reindexer holds the configuration for a reindexer
+type Reindexer struct {
+	SourceElasticSearchClient      data.EsClientConfig
+	DestinationElasticSearchClient data.EsClientConfig
 }
 
 // APIConfig holds the configuration for the API

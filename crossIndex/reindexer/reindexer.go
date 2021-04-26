@@ -38,7 +38,7 @@ func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer cross
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error {
-	err := r.destinationIndexer.PutTemplate("accounts", crossIndex.AccountsTemplate.ToBuffer())
+	err := r.destinationIndexer.CreateIndexWithMapping(destinationIndex, crossIndex.AccountsTemplate.ToBuffer())
 	if err != nil {
 		return err
 	}
@@ -47,9 +47,9 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 		r.count++
 		log.Info("indexing accounts", "bulk", r.count)
 
-		esAccounts, err := getAllAccounts(responseBytes)
-		if err != nil {
-			return err
+		esAccounts, errG := getAllAccounts(responseBytes)
+		if errG != nil {
+			return errG
 		}
 
 		mergedAccounts := core.MergeElasticAndRestAccounts(esAccounts, restAccounts)

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -21,7 +20,8 @@ const numOfErrorsToExtractBulkResponse = 5
 var log = logger.GetOrCreate("elasticClient")
 
 type esClient struct {
-	client *elasticsearch.Client
+	client      *elasticsearch.Client
+	countScroll int
 }
 
 // NewElasticClient will create a new instance of an esClient
@@ -32,7 +32,8 @@ func NewElasticClient(cfg data.EsClientConfig) (*esClient, error) {
 	}
 
 	return &esClient{
-		client: elasticClient,
+		client:      elasticClient,
+		countScroll: 0,
 	}, nil
 }
 
@@ -174,8 +175,12 @@ func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
 }
 
 // PutTemplate will init an index and put the template
-func (ec *esClient) PutTemplate(index string, template *bytes.Buffer) error {
-	res, err := ec.client.Indices.PutTemplate(index, template)
+func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) error {
+	res, err := ec.client.Indices.Create(
+		index,
+		ec.client.Indices.Create.WithBody(mapping),
+	)
+
 	if err != nil {
 		return err
 	}
@@ -200,11 +205,10 @@ func (ec *esClient) DoScrollRequestAllDocuments(
 	body []byte,
 	handlerFunc func(responseBytes []byte) error,
 ) error {
-	// use a random interval in order to avoid AWS GET request cashing
-	randomNum := rand.Intn(50)
+	ec.countScroll++
 	res, err := ec.client.Search(
 		ec.client.Search.WithSize(9000),
-		ec.client.Search.WithScroll(10*time.Minute+time.Duration(randomNum)*time.Millisecond),
+		ec.client.Search.WithScroll(10*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
 		ec.client.Search.WithContext(context.Background()),
 		ec.client.Search.WithIndex(index),
 		ec.client.Search.WithBody(bytes.NewBuffer(body)),
@@ -260,10 +264,10 @@ func (ec *esClient) iterateScroll(
 }
 
 func (ec *esClient) getScrollResponse(scrollID string) ([]byte, error) {
-	randomNum := rand.Intn(10000)
+	ec.countScroll++
 	res, err := ec.client.Scroll(
 		ec.client.Scroll.WithScrollID(scrollID),
-		ec.client.Scroll.WithScroll(2*time.Minute+time.Duration(randomNum)*time.Millisecond),
+		ec.client.Scroll.WithScroll(2*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
 	)
 	if err != nil {
 		return nil, err

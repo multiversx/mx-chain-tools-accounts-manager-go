@@ -14,13 +14,13 @@ func MergeElasticAndRestAccounts(
 
 	for address, account := range accountsES {
 		accounts[address] = account
-	}
 
-	for address, accountRest := range accountsRest {
-		_, ok := accounts[address]
+		accountRest, ok := accountsRest[address]
 		if !ok {
-			// this should never happen because accountsES and accountsRest should have same addresses
-			accounts[address] = &data.AccountInfoWithStakeValues{}
+			accounts[address].TotalBalanceWithStake = accounts[address].Balance
+			accounts[address].TotalBalanceWithStakeNum = accounts[address].BalanceNum
+
+			continue
 		}
 
 		accounts[address].StakeInfo = accountRest.StakeInfo

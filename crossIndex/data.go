@@ -18,17 +18,27 @@ type AllAccountsResponse struct {
 
 // Accounts will hold the configuration for the accounts index
 var AccountsTemplate = mappings.Object{
-	"index_patterns": []interface{}{
-		"accounts-*",
-	},
-	"settings": mappings.Object{
-		"number_of_shards":   3,
-		"number_of_replicas": 0,
-	},
-
 	"mappings": mappings.Object{
 		"properties": mappings.Object{
-			"balanceNum": mappings.Object{
+			"delegationLegacyWaitingNum": mappings.Object{
+				"type": "double",
+			},
+			"delegationLegacyActiveNum": mappings.Object{
+				"type": "double",
+			},
+			"validatorsActiveNum": mappings.Object{
+				"type": "double",
+			},
+			"validatorsTopUpNum": mappings.Object{
+				"type": "double",
+			},
+			"delegationNum": mappings.Object{
+				"type": "double",
+			},
+			"totalStakeNum": mappings.Object{
+				"type": "double",
+			},
+			"totalBalanceWithStakeNum": mappings.Object{
 				"type": "double",
 			},
 		},

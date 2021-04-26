@@ -10,7 +10,7 @@ import (
 type ElasticClientHandler interface {
 	CloneIndex(index, targetIndex string) (cloned bool, err error)
 	PutMapping(targetIndex string, body *bytes.Buffer) error
-	PutTemplate(index string, template *bytes.Buffer) error
+	CreateIndexWithMapping(index string, mapping *bytes.Buffer) error
 	WaitYellowStatus() error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoMultiGet(ids []string, index string) ([]byte, error)

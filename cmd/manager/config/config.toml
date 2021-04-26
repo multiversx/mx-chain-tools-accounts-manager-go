@@ -9,23 +9,23 @@
     Type = "bech32"
 
 [Cloner]
-    [ElasticSearchClient]
+    [Cloner.ElasticSearchClient]
         Address = "http://127.0.0.1:9200"
         Username = ""
         Password = ""
 
 [Reindexer]
-    [SourceElasticSearchClient]
+    [Reindexer.SourceElasticSearchClient]
         Address = "http://127.0.0.1:9200"
         Username = ""
         Password = ""
 
-    [DestinationElasticSearchClient]
+    [Reindexer.DestinationElasticSearchClient]
         Address = "http://127.0.0.1:9200"
         Username = ""
         Password = ""
 
 [APIConfig]
-    APIUrl = "http://localhost:9200"
+    URL = "http://127.0.0.1:7950"
     Username = ""
     Password = ""

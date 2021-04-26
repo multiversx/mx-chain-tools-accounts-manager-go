@@ -26,7 +26,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	rClient, err := restClient.NewRestClient(cfg.ApiConfig.URL)
+	rClient, err := restClient.NewRestClient(cfg.APIConfig.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	authenticationData := core.FetchAuthenticationData(cfg.ApiConfig)
+	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
 	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
@@ -58,17 +58,17 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 }
 
 func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
-	sourceEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.SourceElasticSearchConfig)
+	sourceEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.SourceElasticSearchClient)
 	if err != nil {
 		return nil, err
 	}
 
-	destinationEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.DestinationElasticSeachConfig)
+	destinationEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.DestinationElasticSearchClient)
 	if err != nil {
 		return nil, err
 	}
 
-	rClient, err := restClient.NewRestClient(cfg.ApiConfig.URL)
+	rClient, err := restClient.NewRestClient(cfg.APIConfig.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	authenticationData := core.FetchAuthenticationData(cfg.ApiConfig)
+	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
 	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
