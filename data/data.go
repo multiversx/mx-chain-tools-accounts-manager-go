@@ -17,7 +17,7 @@ type GenericAPIResponse struct {
 // StakedInfo defines the structure of a response staked info response
 type StakedInfo struct {
 	Address string `json:"address"`
-	Staked  string `json:"staked"`
+	Staked  string `json:"baseStaked"`
 	TopUp   string `json:"topUp"`
 	Total   string `json:"total"`
 }
@@ -25,7 +25,7 @@ type StakedInfo struct {
 type DelegatorStake struct {
 	DelegatorAddress string `json:"delegatorAddress"`
 	DelegatedTo      []struct {
-		DelegationScAddress string `json:"delegatorAddress"`
+		DelegationScAddress string `json:"delegationScAddress"`
 		Value               string `json:"value"`
 	} `json:"delegatedTo"`
 	Total string `json:"total"`
