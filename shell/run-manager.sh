@@ -1,16 +1,17 @@
 COUNT=0
 MAX_RETRIES=10
-CURRENT_DATE=$(date +'%m_%d_%Y')
-LOGS_FILE=logs_"${CURRENT_DATE}".txt
+CURRENT_DATE=$(date +'%Y_%m_%d')
 
 PATH_TO_CONFIG="./../cmd/manager/config/config.toml"
 PATH_TO_MANAGER="./../cmd/manager/manager"
 
 while [ ${COUNT} -lt ${MAX_RETRIES} ]
 do
-  ${PATH_TO_MANAGER} -config ${PATH_TO_CONFIG} -type "reindex" > "${LOGS_FILE}"
+  CURRENT_LOGS_FILE="logs_${CURRENT_DATE}_$(( COUNT+1 )).txt"
 
-  ERROR_OUTPUT=$(grep ERROR "${LOGS_FILE}" )
+  ${PATH_TO_MANAGER} -config ${PATH_TO_CONFIG} -type "reindex" > "${CURRENT_LOGS_FILE}"
+
+  ERROR_OUTPUT=$(grep ERROR "${CURRENT_LOGS_FILE}" )
 
   if [ -z "${ERROR_OUTPUT}" ]
   then
