@@ -37,5 +37,5 @@ func (dp *reindexerDataProcessor) ProcessAccountsData() error {
 		return err
 	}
 
-	return dp.reindexer.ReindexAccounts("accounts", newIndex, accountsRest)
+	return dp.reindexer.ReindexAccounts(accountsIndex, newIndex, accountsRest)
 }
