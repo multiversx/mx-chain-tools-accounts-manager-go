@@ -1,0 +1,222 @@
+package elasticClient
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+)
+
+const numOfErrorsToExtractBulkResponse = 5
+
+type esClient struct {
+	client *elasticsearch.Client
+}
+
+// NewElasticClient will create a new instance of an esClient
+func NewElasticClient(cfg elasticsearch.Config) (*esClient, error) {
+	elasticClient, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &esClient{
+		client: elasticClient,
+	}, nil
+}
+
+// DoBulkRequest will do a bulk of request to elastic server
+func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
+	reader := bytes.NewReader(buff.Bytes())
+
+	res, err := ec.client.Bulk(
+		reader,
+		ec.client.Bulk.WithIndex(index),
+	)
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	defer closeBody(res)
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	bulkResponse := &data.BulkRequestResponse{}
+	err = json.Unmarshal(bodyBytes, bulkResponse)
+	if err != nil {
+		return err
+	}
+
+	if bulkResponse.Errors {
+		return extractErrorFromBulkResponse(bulkResponse)
+	}
+
+	return nil
+}
+
+func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
+	count := 0
+	errorsString := ""
+	for _, item := range response.Items {
+		if item.Index.Status < http.StatusBadRequest {
+			continue
+		}
+
+		count++
+		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
+
+		if count == numOfErrorsToExtractBulkResponse {
+			break
+		}
+	}
+
+	return fmt.Errorf("%s", errorsString)
+}
+
+// DoMultiGet wil do a multi get request to elaticsearch server
+func (ec *esClient) DoMultiGet(ids []string, index string) ([]byte, error) {
+	buff := getDocumentsByIDsQueryEncoded(ids)
+	res, err := ec.client.Mget(
+		buff,
+		ec.client.Mget.WithIndex(index),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if res.IsError() {
+		return nil, fmt.Errorf("%s", res.String())
+	}
+
+	defer closeBody(res)
+
+	bodyBytes, errRead := ioutil.ReadAll(res.Body)
+	if errRead != nil {
+		return nil, errRead
+	}
+
+	return bodyBytes, nil
+}
+
+// WaitYellowStatus will wait for yellow status of the ES cluster (wait clone operation to be done)
+func (ec *esClient) WaitYellowStatus() error {
+	res, err := ec.client.Cluster.Health(
+		ec.client.Cluster.Health.WithWaitForStatus("yellow"),
+	)
+
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	defer closeBody(res)
+
+	return nil
+}
+
+// CloneIndex wil try to clone an index
+// to clone an index we have to set first index as "read-only" and after that do clone operation
+// after the clone operation is done we have to used read-only setting
+// this function return if index was cloned and an error
+func (ec *esClient) CloneIndex(index, targetIndex string) (cloned bool, err error) {
+	err = ec.setReadOnly(index)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		errUnset := ec.UnsetReadOnly(index)
+		if err != nil && errUnset != nil {
+			err = fmt.Errorf("error clone: %w, error unsetReadOnly: %s", err, errUnset)
+			return
+		}
+		return
+	}()
+
+	res, errClone := ec.client.Indices.Clone(
+		index,
+		targetIndex,
+		ec.client.Indices.Clone.WithWaitForActiveShards("1"),
+	)
+	if errClone != nil {
+		err = errClone
+		return
+	}
+
+	if res.IsError() {
+		err = fmt.Errorf("%s", res.String())
+		return
+	}
+
+	defer closeBody(res)
+
+	cloned = true
+	return
+}
+
+// PutMapping will put mapping for a given index
+func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
+	res, err := ec.client.Indices.PutMapping(
+		body,
+		ec.client.Indices.PutMapping.WithIndex(targetIndex),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	defer closeBody(res)
+
+	return nil
+}
+
+// UnsetReadOnly will unset property "read-only" of an elasticsearch index
+func (ec *esClient) UnsetReadOnly(index string) error {
+	return ec.putSettings(false, index)
+}
+
+func (ec *esClient) setReadOnly(index string) error {
+	return ec.putSettings(true, index)
+}
+
+func (ec *esClient) putSettings(readOnly bool, index string) error {
+	buff := settingsWriteEncoded(readOnly)
+
+	res, err := ec.client.Indices.PutSettings(
+		buff,
+		ec.client.Indices.PutSettings.WithIndex(index),
+	)
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	defer closeBody(res)
+
+	return nil
+}
+
+func closeBody(res *esapi.Response) {
+	if res != nil && res.Body != nil {
+		_ = res.Body.Close()
+	}
+}

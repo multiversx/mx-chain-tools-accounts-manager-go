@@ -1,0 +1,13 @@
+[GeneralConfig]
+    APIUrl = "http://localhost:9200"
+    ElasticDatabaseAddress = "http://localhost:9200"
+    Username         = ""
+    Password         = ""
+    DelegationLegacyContractAddress = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
+
+
+[AddressPubkeyConverter]
+    #Length specifies the length in bytes of an address
+    Length = 32
+    # Type specifies the type of public keys: hex or bech32
+    Type = "bech32"
