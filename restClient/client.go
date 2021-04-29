@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -33,6 +34,7 @@ func NewRestClient(url string) (*restClient, error) {
 func (rc *restClient) CallGetRestEndPoint(
 	path string,
 	value interface{},
+	authenticationData data.RestApiAuthenticationData,
 ) error {
 	req, err := http.NewRequest("GET", rc.url+path, nil)
 	if err != nil {
@@ -42,6 +44,9 @@ func (rc *restClient) CallGetRestEndPoint(
 	userAgent := "Accounts manager>"
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
+	if core.ShouldUseBasicAuthentication(authenticationData) {
+		req.SetBasicAuth(authenticationData.Username, authenticationData.Password)
+	}
 
 	resp, err := rc.httpClient.Do(req)
 	if err != nil {
@@ -79,6 +84,7 @@ func (rc *restClient) CallPostRestEndPoint(
 	path string,
 	dataR interface{},
 	response interface{},
+	authenticationData data.RestApiAuthenticationData,
 ) error {
 	buff, err := json.Marshal(dataR)
 	if err != nil {
@@ -92,6 +98,9 @@ func (rc *restClient) CallPostRestEndPoint(
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "userAgent")
+	if core.ShouldUseBasicAuthentication(authenticationData) {
+		req.SetBasicAuth(authenticationData.Username, authenticationData.Password)
+	}
 
 	resp, err := rc.httpClient.Do(req)
 	if err != nil {

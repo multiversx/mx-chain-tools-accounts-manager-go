@@ -6,9 +6,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-go/core"
+	nodeCore "github.com/ElrondNetwork/elrond-go/core"
 	"github.com/tidwall/gjson"
 )
 
@@ -23,19 +23,22 @@ const (
 type accountsGetter struct {
 	restClient                RestClientHandler
 	delegationContractAddress string
-	pubKeyConverter           core.PubkeyConverter
+	pubKeyConverter           nodeCore.PubkeyConverter
+	authenticationData        data.RestApiAuthenticationData
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
 func NewAccountsGetter(
 	restClient RestClientHandler,
 	delegationContractAddress string,
-	pubKeyConverter core.PubkeyConverter,
+	pubKeyConverter nodeCore.PubkeyConverter,
+	authenticationData data.RestApiAuthenticationData,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
 		restClient:                restClient,
 		delegationContractAddress: delegationContractAddress,
 		pubKeyConverter:           pubKeyConverter,
+		authenticationData:        authenticationData,
 	}, nil
 }
 
@@ -58,7 +61,7 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		accountsMap[key] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				DelegationLegacyActive:    value,
-				DelegationLegacyActiveNum: convert.ComputeBalanceAsFloat(value),
+				DelegationLegacyActiveNum: core.ComputeBalanceAsFloat(value),
 			},
 		}
 	}
@@ -70,7 +73,7 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		}
 
 		accountsMap[key].DelegationLegacyWaiting = value
-		accountsMap[key].DelegationLegacyWaitingNum = convert.ComputeBalanceAsFloat(value)
+		accountsMap[key].DelegationLegacyWaitingNum = core.ComputeBalanceAsFloat(value)
 	}
 
 	return accountsMap, nil
@@ -92,7 +95,7 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	}
 
 	responseVmValue := &data.ResponseVmValue{}
-	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue)
+	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue, core.GetEmptyApiCredentials())
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +120,7 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 	defer logExecutionTime(time.Now(), "Fetched accounts from validators contract")
 
 	genericApiResponse := &data.GenericAPIResponse{}
-	err := ag.restClient.CallGetRestEndPoint(pathValidatorsStake, genericApiResponse)
+	err := ag.restClient.CallGetRestEndPoint(pathValidatorsStake, genericApiResponse, ag.authenticationData)
 	if err != nil {
 		return nil, err
 	}
@@ -137,9 +140,9 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 		accountsStake[acct.Address] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				ValidatorsActive:    acct.Staked,
-				ValidatorsActiveNum: convert.ComputeBalanceAsFloat(acct.Staked),
+				ValidatorsActiveNum: core.ComputeBalanceAsFloat(acct.Staked),
 				ValidatorTopUp:      acct.TopUp,
-				ValidatorTopUpNum:   convert.ComputeBalanceAsFloat(acct.TopUp),
+				ValidatorTopUpNum:   core.ComputeBalanceAsFloat(acct.TopUp),
 			},
 		}
 	}
@@ -152,7 +155,7 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 	defer logExecutionTime(time.Now(), "Fetched accounts from delegation manager contracts")
 
 	genericApiResponse := &data.GenericAPIResponse{}
-	err := ag.restClient.CallGetRestEndPoint(pathDelegatorStake, genericApiResponse)
+	err := ag.restClient.CallGetRestEndPoint(pathDelegatorStake, genericApiResponse, ag.authenticationData)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +176,7 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 		accountsStake[acct.DelegatorAddress] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				Delegation:    acct.Total,
-				DelegationNum: convert.ComputeBalanceAsFloat(acct.Total),
+				DelegationNum: core.ComputeBalanceAsFloat(acct.Total),
 			},
 		}
 	}

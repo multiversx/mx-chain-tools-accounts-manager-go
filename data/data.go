@@ -17,7 +17,7 @@ type GenericAPIResponse struct {
 // StakedInfo defines the structure of a response staked info response
 type StakedInfo struct {
 	Address string `json:"address"`
-	Staked  string `json:"staked"`
+	Staked  string `json:"baseStaked"`
 	TopUp   string `json:"topUp"`
 	Total   string `json:"total"`
 }
@@ -25,7 +25,7 @@ type StakedInfo struct {
 type DelegatorStake struct {
 	DelegatorAddress string `json:"delegatorAddress"`
 	DelegatedTo      []struct {
-		DelegationScAddress string `json:"delegatorAddress"`
+		DelegationScAddress string `json:"delegationScAddress"`
 		Value               string `json:"value"`
 	} `json:"delegatedTo"`
 	Total string `json:"total"`
@@ -104,4 +104,17 @@ type StakeInfo struct {
 	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
 	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
+}
+
+// EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct
+type EsClientConfig struct {
+	Address  string
+	Username string
+	Password string
+}
+
+// RestApiAuthenticationData holds the data to be used when authorizing API requests
+type RestApiAuthenticationData struct {
+	Username string
+	Password string
 }

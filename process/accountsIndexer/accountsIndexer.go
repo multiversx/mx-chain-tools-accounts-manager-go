@@ -1,4 +1,4 @@
-package process
+package accountsIndexer
 
 import (
 	"bytes"
@@ -7,12 +7,15 @@ import (
 
 	dataIndexer "github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/tidwall/gjson"
 )
 
 const (
 	numAddressesInBulk = 2000
 )
+
+var log = logger.GetOrCreate("process/accountsIndexer")
 
 type accountsIndexer struct {
 	elasticClient ElasticClientHandler
@@ -122,4 +125,15 @@ func prepareSerializedAccountInfo(
 	}
 
 	return meta, serializedData, nil
+}
+
+func mergeAccountsMaps(dst, src map[string]*data.AccountInfoWithStakeValues) {
+	for key, value := range src {
+		dst[key] = value
+	}
+}
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (ai *accountsIndexer) IsInterfaceNil() bool {
+	return ai == nil
 }

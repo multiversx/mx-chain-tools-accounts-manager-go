@@ -3,23 +3,38 @@ package process
 import (
 	"time"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/mappings"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 )
 
-type dataProcessor struct {
+var log = logger.GetOrCreate("process")
+
+type clonerDataProcessor struct {
 	accountsIndexer   AccountsIndexerHandler
 	accountsProcessor AccountsProcessorHandler
 	cloner            Cloner
 }
 
-// NewDataProcessor will create a new instance of dataProcessor
-func NewDataProcessor(
+// NewClonerDataProcessor will create a new instance of clonerDataProcessor
+func NewClonerDataProcessor(
 	accountsIndexer AccountsIndexerHandler,
 	accountsProcessor AccountsProcessorHandler,
 	cloner Cloner,
-) (*dataProcessor, error) {
-	return &dataProcessor{
+) (*clonerDataProcessor, error) {
+	if check.IfNil(accountsIndexer) {
+		return nil, ErrNilAccountsIndexer
+	}
+	if check.IfNil(accountsProcessor) {
+		return nil, ErrNilAccountsProcessor
+	}
+	if check.IfNil(cloner) {
+		return nil, ErrNilCloner
+	}
+
+	return &clonerDataProcessor{
 		accountsIndexer:   accountsIndexer,
 		accountsProcessor: accountsProcessor,
 		cloner:            cloner,
@@ -27,7 +42,7 @@ func NewDataProcessor(
 }
 
 // ProcessAccountsData will process accounts data
-func (dp *dataProcessor) ProcessAccountsData() error {
+func (dp *clonerDataProcessor) ProcessAccountsData() error {
 	accountsRest, addresses, err := dp.accountsProcessor.GetAllAccountsWithStake()
 	if err != nil {
 		return err
@@ -38,7 +53,7 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 		return err
 	}
 
-	preparedAccounts := dp.accountsProcessor.PrepareAccountsForReindexing(accountsES, accountsRest)
+	preparedAccounts := core.MergeElasticAndRestAccounts(accountsES, accountsRest)
 
 	newIndex, err := dp.cloneAccountsIndex()
 	if err != nil {
@@ -47,12 +62,12 @@ func (dp *dataProcessor) ProcessAccountsData() error {
 
 	defer logExecutionTime(time.Now(), "Indexed modified accounts")
 
-	log.Info("Accounts to index", "total", len(preparedAccounts))
+	log.Info("accounts to index", "total", len(preparedAccounts))
 
 	return dp.accountsIndexer.IndexAccounts(preparedAccounts, newIndex)
 }
 
-func (dp *dataProcessor) cloneAccountsIndex() (string, error) {
+func (dp *clonerDataProcessor) cloneAccountsIndex() (string, error) {
 	defer logExecutionTime(time.Now(), "Cloned accounts index")
 
 	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
@@ -68,16 +83,10 @@ func (dp *dataProcessor) cloneAccountsIndex() (string, error) {
 	return newIndex, nil
 }
 
-func (dp *dataProcessor) getAccountsESDatabase(addresses []string) (map[string]*data.AccountInfoWithStakeValues, error) {
+func (dp *clonerDataProcessor) getAccountsESDatabase(addresses []string) (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from elasticseach database")
 
 	return dp.accountsIndexer.GetAccounts(addresses, accountsIndex)
-}
-
-func mergeAccountsMaps(dst, src map[string]*data.AccountInfoWithStakeValues) {
-	for key, value := range src {
-		dst[key] = value
-	}
 }
 
 func logExecutionTime(start time.Time, message string) {

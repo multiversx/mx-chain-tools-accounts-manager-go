@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/convert"
+	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/tidwall/gjson"
 )
@@ -108,41 +108,10 @@ func (ap *accountsProcessor) mergeAccounts(
 	return mergedAccounts, allAddresses
 }
 
-// PrepareAccountsForReindexing will prepare accounts for reindexing
-func (ap *accountsProcessor) PrepareAccountsForReindexing(
-	accountsES, accountsRest map[string]*data.AccountInfoWithStakeValues,
-) map[string]*data.AccountInfoWithStakeValues {
-	accounts := make(map[string]*data.AccountInfoWithStakeValues)
-
-	for address, account := range accountsES {
-		accounts[address] = account
-	}
-
-	for address, accountRest := range accountsRest {
-		_, ok := accounts[address]
-		if !ok {
-			// this should never happen because accountsES and accountsRest should have same addresses
-			accounts[address] = &data.AccountInfoWithStakeValues{}
-		}
-
-		accounts[address].StakeInfo = accountRest.StakeInfo
-
-		totalBalanceWithStake, totalBalanceWithStakeNum := computeTotalBalance(
-			accounts[address].Balance,
-			accountRest.TotalStake,
-		)
-
-		accounts[address].TotalBalanceWithStake = totalBalanceWithStake
-		accounts[address].TotalBalanceWithStakeNum = totalBalanceWithStakeNum
-	}
-
-	return accounts
-}
-
 // PrepareAccountsForReindexing will compute cloned accounts index based on current epoch
 func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
 	genericAPIResponse := &data.GenericAPIResponse{}
-	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse)
+	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse, core.GetEmptyApiCredentials())
 	if err != nil {
 		return "", err
 	}
@@ -170,8 +139,13 @@ func computeTotalBalance(balances ...string) (string, float64) {
 		}
 
 		totalBalance = totalBalance.Add(totalBalance, balanceBig)
-		totalBalanceFloat += convert.ComputeBalanceAsFloat(balance)
+		totalBalanceFloat += core.ComputeBalanceAsFloat(balance)
 	}
 
 	return totalBalance.String(), totalBalanceFloat
+}
+
+// IsInterfaceNil returns true if the value under the interface is nil
+func (ap *accountsProcessor) IsInterfaceNil() bool {
+	return ap == nil
 }
