@@ -20,6 +20,9 @@ type AllAccountsResponse struct {
 var AccountsTemplate = mappings.Object{
 	"mappings": mappings.Object{
 		"properties": mappings.Object{
+			"balanceNum": mappings.Object{
+				"type": "double",
+			},
 			"delegationLegacyWaitingNum": mappings.Object{
 				"type": "double",
 			},
