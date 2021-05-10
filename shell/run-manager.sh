@@ -2,14 +2,30 @@ COUNT=0
 MAX_RETRIES=10
 CURRENT_DATE=$(date +'%Y_%m_%d')
 
-PATH_TO_CONFIG="./../cmd/manager/config/config.toml"
-PATH_TO_MANAGER="./../cmd/manager/manager"
+if [[ $# -ne 2 ]]; then
+  echo "invalid number of arguments, provided $#, expected 2"
+  exit 1
+fi
+
+PATH_TO_MANAGER=$1
+PATH_TO_CONFIG=$2
+
+if [ ! -f "${PATH_TO_MANAGER}" ]; then
+    echo "cannot find account manager binary, provided path ${PATH_TO_CONFIG}"
+    exit 1
+fi
+
+if [ ! -f "${PATH_TO_CONFIG}" ]; then
+    echo "cannot find config file, provided path: ${PATH_TO_CONFIG}"
+    exit 1
+fi
+
 
 while [ ${COUNT} -lt ${MAX_RETRIES} ]
 do
   CURRENT_LOGS_FILE="logs_${CURRENT_DATE}_$(( COUNT+1 )).txt"
 
-  ${PATH_TO_MANAGER} -config ${PATH_TO_CONFIG} -type "reindex" > "${CURRENT_LOGS_FILE}"
+  ${PATH_TO_MANAGER} -config "${PATH_TO_CONFIG}" -type "reindex" > "${CURRENT_LOGS_FILE}"
 
   ERROR_OUTPUT=$(grep ERROR "${CURRENT_LOGS_FILE}" )
 
