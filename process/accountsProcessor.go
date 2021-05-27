@@ -118,7 +118,7 @@ func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
 		return "", err
 	}
 	if genericAPIResponse.Error != "" {
-		return "", fmt.Errorf("%s", genericAPIResponse.Error)
+		return "", fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
 	}
 
 	epoch := gjson.Get(string(genericAPIResponse.Data), "status.erd_epoch_number")
