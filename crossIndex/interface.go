@@ -19,7 +19,7 @@ type ElasticClientHandler interface {
 	IsInterfaceNil() bool
 }
 
-// // RestClientHandler defines what a rest client should be able do
+// RestClientHandler defines what a rest client should be able do
 type RestClientHandler interface {
 	CallGetRestEndPoint(path string, value interface{}) error
 	CallPostRestEndPoint(path string, data interface{}, response interface{}) error

@@ -49,7 +49,7 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("%s", res.String())
+		return fmt.Errorf("error DoBulkRequest: %s", res.String())
 	}
 
 	defer closeBody(res)
@@ -83,7 +83,7 @@ func (ec *esClient) DoMultiGet(ids []string, index string) ([]byte, error) {
 		return nil, err
 	}
 	if res.IsError() {
-		return nil, fmt.Errorf("%s", res.String())
+		return nil, fmt.Errorf("error DoMultiGet: %s", res.String())
 	}
 
 	defer closeBody(res)
@@ -106,7 +106,7 @@ func (ec *esClient) WaitYellowStatus() error {
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("%s", res.String())
+		return fmt.Errorf("error WaitYellowStatus: %s", res.String())
 	}
 
 	defer closeBody(res)
@@ -144,7 +144,7 @@ func (ec *esClient) CloneIndex(index, targetIndex string) (cloned bool, err erro
 	}
 
 	if res.IsError() {
-		err = fmt.Errorf("%s", res.String())
+		err = fmt.Errorf("error CloneIndex: %s", res.String())
 		return
 	}
 
@@ -166,7 +166,7 @@ func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
 	}
 
 	if res.IsError() {
-		return fmt.Errorf("%s", res.String())
+		return fmt.Errorf("error PutMapping: %s", res.String())
 	}
 
 	defer closeBody(res)
@@ -174,7 +174,7 @@ func (ec *esClient) PutMapping(targetIndex string, body *bytes.Buffer) error {
 	return nil
 }
 
-// PutTemplate will init an index and put the template
+// CreateIndexWithMapping will init an index and put the template
 func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) error {
 	res, err := ec.client.Indices.Create(
 		index,
@@ -186,7 +186,7 @@ func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) 
 	}
 
 	if res.IsError() {
-		return fmt.Errorf("error response: %s", res)
+		return fmt.Errorf("error CreateIndexWithMapping: %s", res)
 	}
 
 	defer closeBody(res)
@@ -216,6 +216,9 @@ func (ec *esClient) DoScrollRequestAllDocuments(
 	if err != nil {
 		return err
 	}
+	if res.IsError() {
+		return fmt.Errorf("error DoScrollRequestAllDocuments: %s", res)
+	}
 
 	bodyBytes, err := getBytesFromResponse(res)
 	if err != nil {
@@ -241,7 +244,7 @@ func (ec *esClient) iterateScroll(
 	defer func() {
 		err := ec.clearScroll(scrollID)
 		if err != nil {
-			log.Warn("cannot clear scroll ", err)
+			log.Warn("cannot clear scroll", "error", err)
 		}
 	}()
 
@@ -308,7 +311,7 @@ func (ec *esClient) putSettings(readOnly bool, index string) error {
 	}
 
 	if res.IsError() {
-		return fmt.Errorf("%s", res.String())
+		return fmt.Errorf("error putSettings: %s", res.String())
 	}
 
 	defer closeBody(res)

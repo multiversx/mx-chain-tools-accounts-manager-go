@@ -150,7 +150,7 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 	return accountsStake, nil
 }
 
-// // GetDelegatorsAccounts will fetch all delegators accounts
+// GetDelegatorsAccounts will fetch all delegators accounts
 func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from delegation manager contracts")
 
