@@ -157,17 +157,18 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 	genericApiResponse := &data.GenericAPIResponse{}
 	err := ag.restClient.CallGetRestEndPoint(pathDelegatorStake, genericApiResponse, ag.authenticationData)
 	if err != nil {
+		log.Warn("CallGetRestEndPoint", "error", err.Error())
 		return nil, err
 	}
 	if genericApiResponse.Error != "" {
-		return nil, fmt.Errorf("%s", genericApiResponse.Error)
+		return nil, fmt.Errorf("cannot get delegators accounts %s", genericApiResponse.Error)
 	}
 
 	list := gjson.Get(string(genericApiResponse.Data), "list")
 	accountsInfo := make([]data.DelegatorStake, 0)
 	err = json.Unmarshal([]byte(list.String()), &accountsInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Warn("cannot unmarshal accounts info", "error", err.Error())
 		return nil, err
 	}
 
