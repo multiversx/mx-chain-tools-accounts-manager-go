@@ -3,7 +3,6 @@ package elasticClient
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -42,7 +41,7 @@ func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
 	count := 0
 	errorsString := ""
 	for _, item := range response.Items {
-		if item.Index.Status < http.StatusBadRequest {
+		if item.Index.Status < 300 {
 			continue
 		}
 
