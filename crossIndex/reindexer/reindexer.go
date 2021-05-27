@@ -38,6 +38,7 @@ func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer cross
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error {
+	log.Info("Create a new index with mapping")
 	err := r.destinationIndexer.CreateIndexWithMapping(destinationIndex, crossIndex.AccountsTemplate.ToBuffer())
 	if err != nil {
 		return err

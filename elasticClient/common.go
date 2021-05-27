@@ -25,7 +25,7 @@ func closeBody(res *esapi.Response) {
 
 func getBytesFromResponse(res *esapi.Response) ([]byte, error) {
 	if res.IsError() {
-		return nil, fmt.Errorf("error response: %s", res)
+		return nil, fmt.Errorf("error response: %s", res.String())
 	}
 	defer closeBody(res)
 
