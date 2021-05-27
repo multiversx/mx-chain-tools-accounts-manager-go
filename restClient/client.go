@@ -65,21 +65,10 @@ func (rc *restClient) CallGetRestEndPoint(
 		return err
 	}
 
-	responseStatusCode := resp.StatusCode
-	if responseStatusCode == http.StatusOK {
-		return nil
-	}
-
-	// status response not ok, return the error
-	responseBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	return errors.New(string(responseBytes))
+	return nil
 }
 
-// CallGetRestEndPoint calls an external end point (sends a post request)
+// CallPostRestEndPoint calls an external end point (sends a post request)
 func (rc *restClient) CallPostRestEndPoint(
 	path string,
 	dataR interface{},
