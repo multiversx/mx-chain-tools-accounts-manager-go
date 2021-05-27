@@ -186,7 +186,7 @@ func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) 
 	}
 
 	if res.IsError() {
-		return fmt.Errorf("error CreateIndexWithMapping: %s", res)
+		return fmt.Errorf("error CreateIndexWithMapping: %s", res.String())
 	}
 
 	defer closeBody(res)
@@ -217,7 +217,7 @@ func (ec *esClient) DoScrollRequestAllDocuments(
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("error DoScrollRequestAllDocuments: %s", res)
+		return fmt.Errorf("error DoScrollRequestAllDocuments: %s", res.String())
 	}
 
 	bodyBytes, err := getBytesFromResponse(res)
