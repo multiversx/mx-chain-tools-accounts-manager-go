@@ -53,5 +53,6 @@ func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
 		}
 	}
 
+	log.Warn("extractErrorFromBulkResponse", "error", errorsString)
 	return fmt.Errorf("%s", errorsString)
 }
