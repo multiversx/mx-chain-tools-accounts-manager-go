@@ -3,7 +3,6 @@ package elasticClient
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -26,7 +25,7 @@ func closeBody(res *esapi.Response) {
 
 func getBytesFromResponse(res *esapi.Response) ([]byte, error) {
 	if res.IsError() {
-		return nil, fmt.Errorf("error response: %s", res)
+		return nil, fmt.Errorf("error response: %s", res.String())
 	}
 	defer closeBody(res)
 
@@ -42,7 +41,7 @@ func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
 	count := 0
 	errorsString := ""
 	for _, item := range response.Items {
-		if item.Index.Status < http.StatusBadRequest {
+		if item.Index.Status < 300 {
 			continue
 		}
 
@@ -54,5 +53,6 @@ func extractErrorFromBulkResponse(response *data.BulkRequestResponse) error {
 		}
 	}
 
+	log.Warn("extractErrorFromBulkResponse", "error", errorsString)
 	return fmt.Errorf("%s", errorsString)
 }

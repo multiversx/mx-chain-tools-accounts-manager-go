@@ -110,13 +110,15 @@ func (ap *accountsProcessor) mergeAccounts(
 
 // ComputeClonedAccountsIndex will compute cloned accounts index based on current epoch
 func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
+	log.Info("Compute name of the new index...")
+
 	genericAPIResponse := &data.GenericAPIResponse{}
 	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse, core.GetEmptyApiCredentials())
 	if err != nil {
 		return "", err
 	}
 	if genericAPIResponse.Error != "" {
-		return "", fmt.Errorf("%s", genericAPIResponse.Error)
+		return "", fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
 	}
 
 	epoch := gjson.Get(string(genericAPIResponse.Data), "status.erd_epoch_number")

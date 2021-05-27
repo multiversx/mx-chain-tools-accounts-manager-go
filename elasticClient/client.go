@@ -54,9 +54,9 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 
 	defer closeBody(res)
 
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
+	bodyBytes, errRead := ioutil.ReadAll(res.Body)
+	if errRead != nil {
+		return errRead
 	}
 
 	bulkResponse := &data.BulkRequestResponse{}
@@ -220,9 +220,9 @@ func (ec *esClient) DoScrollRequestAllDocuments(
 		return fmt.Errorf("error DoScrollRequestAllDocuments: %s", res.String())
 	}
 
-	bodyBytes, err := getBytesFromResponse(res)
-	if err != nil {
-		return err
+	bodyBytes, errGet := getBytesFromResponse(res)
+	if errGet != nil {
+		return errGet
 	}
 
 	err = handlerFunc(bodyBytes)
@@ -287,7 +287,7 @@ func (ec *esClient) clearScroll(scrollID string) error {
 		return err
 	}
 	if resp.IsError() && resp.StatusCode != http.StatusNotFound {
-		return fmt.Errorf("error response: %s", resp)
+		return fmt.Errorf("error response: %s", resp.String())
 	}
 
 	defer closeBody(resp)
