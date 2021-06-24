@@ -15,7 +15,7 @@ type AllAccountsResponse struct {
 	} `json:"hits"`
 }
 
-// Accounts will hold the configuration for the accounts index
+// AccountsTemplate will hold the configuration for the accounts index
 var AccountsTemplate = mappings.Object{
 	"index_patterns": []interface{}{
 		"accounts-*",
@@ -28,6 +28,9 @@ var AccountsTemplate = mappings.Object{
 	"mappings": mappings.Object{
 		"properties": mappings.Object{
 			"balanceNum": mappings.Object{
+				"type": "double",
+			},
+			"totalBalanceWithStakeNum": mappings.Object{
 				"type": "double",
 			},
 		},

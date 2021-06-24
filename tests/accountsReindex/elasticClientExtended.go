@@ -23,7 +23,7 @@ type extendedElasticClient struct {
 	process.ElasticClientHandler
 }
 
-func NewExtendedElasticClient(sourceDB, destinationDB string) (*extendedElasticClient, error) {
+func NewExtendedElasticClient(sourceDB, destinationDB string, newIndex string) (*extendedElasticClient, error) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{destinationDB},
 		Username:  "",
@@ -40,7 +40,7 @@ func NewExtendedElasticClient(sourceDB, destinationDB string) (*extendedElasticC
 		ElasticClientHandler: dstClient,
 	}
 
-	err = exClient.initIndex("accounts", AccountsTemplate.ToBuffer())
+	err = exClient.initIndex(newIndex, AccountsTemplate.ToBuffer())
 	if err != nil {
 		return nil, nil
 	}

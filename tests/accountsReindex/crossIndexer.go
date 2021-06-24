@@ -9,19 +9,21 @@ import (
 )
 
 type crossIndexer struct {
+	newIndexName   string
 	extendedClient ExtendedElasticHandler
 	count          int
 }
 
 var log = logger.GetOrCreate("cross-indexer")
 
-func NewCrossIndexer(sourceDB string, destinationDB string) (*crossIndexer, error) {
-	extendedClient, err := NewExtendedElasticClient(sourceDB, destinationDB)
+func NewCrossIndexer(sourceDB string, destinationDB string, newIndexName string) (*crossIndexer, error) {
+	extendedClient, err := NewExtendedElasticClient(sourceDB, destinationDB, newIndexName)
 	if err != nil {
 		return nil, err
 	}
 
 	return &crossIndexer{
+		newIndexName:   newIndexName,
 		extendedClient: extendedClient,
 	}, nil
 }
@@ -48,7 +50,7 @@ func (ci *crossIndexer) indexAllAccounts(mapAllAccounts map[string]*data.Account
 		return err
 	}
 
-	return acIndexer.IndexAccounts(mapAllAccounts, "accounts-000001")
+	return acIndexer.IndexAccounts(mapAllAccounts, ci.newIndexName)
 }
 
 func getAllAccounts(responseBytes []byte) (map[string]*data.AccountInfoWithStakeValues, error) {
