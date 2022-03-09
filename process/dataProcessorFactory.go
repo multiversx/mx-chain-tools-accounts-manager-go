@@ -37,7 +37,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 	}
 
 	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData, cfg.GeneralConfig.LKMEXStakingContractAddress)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {
@@ -79,7 +79,7 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 	}
 
 	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData)
+	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData, cfg.GeneralConfig.LKMEXStakingContractAddress)
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {

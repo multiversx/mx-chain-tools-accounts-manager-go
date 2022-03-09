@@ -18,13 +18,16 @@ const (
 	pathVMValues        = "/vm-values/query"
 	getFullWaitingList  = "getFullWaitingList"
 	getFullActiveList   = "getFullActiveList"
+	lkMexSnapShot       = "getSnapshot"
 )
 
 type accountsGetter struct {
-	restClient                RestClientHandler
+	restClient         RestClientHandler
+	pubKeyConverter    nodeCore.PubkeyConverter
+	authenticationData data.RestApiAuthenticationData
+
 	delegationContractAddress string
-	pubKeyConverter           nodeCore.PubkeyConverter
-	authenticationData        data.RestApiAuthenticationData
+	lkMexContractAddress      string
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
@@ -33,12 +36,14 @@ func NewAccountsGetter(
 	delegationContractAddress string,
 	pubKeyConverter nodeCore.PubkeyConverter,
 	authenticationData data.RestApiAuthenticationData,
+	lkMexContractAddress string,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
 		restClient:                restClient,
 		delegationContractAddress: delegationContractAddress,
 		pubKeyConverter:           pubKeyConverter,
 		authenticationData:        authenticationData,
+		lkMexContractAddress:      lkMexContractAddress,
 	}, nil
 }
 
@@ -183,4 +188,46 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 	}
 
 	return accountsStake, nil
+}
+
+// GetLKMEXStakeAccounts will fetch all accounts that have stake lkmex tokens
+func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+	defer logExecutionTime(time.Now(), "Fetched accounts from lkmex staking contract")
+
+	vmRequest := &data.VmValueRequest{
+		Address:    ag.lkMexContractAddress,
+		FuncName:   lkMexSnapShot,
+		CallerAddr: ag.lkMexContractAddress,
+	}
+
+	responseVmValue := &data.ResponseVmValue{}
+	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue, core.GetEmptyApiCredentials())
+	if err != nil {
+		return nil, err
+	}
+	if responseVmValue.Error != "" {
+		return nil, fmt.Errorf("%s", responseVmValue.Error)
+	}
+
+	stepForLoop := 2
+	returnedData := responseVmValue.Data.Data.ReturnData
+	accountsStake := make(map[string]string, 0)
+	for idx := 0; idx < len(returnedData); idx += stepForLoop {
+		address := ag.pubKeyConverter.Encode(returnedData[idx])
+		stakedBalance := big.NewInt(0).SetBytes(returnedData[idx+1])
+
+		accountsStake[address] = stakedBalance.String()
+	}
+
+	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
+	for key, value := range accountsStake {
+		accountsMap[key] = &data.AccountInfoWithStakeValues{
+			StakeInfo: data.StakeInfo{
+				LKMEXStake:    value,
+				LKMEXStakeNum: core.ComputeBalanceAsFloat(value),
+			},
+		}
+	}
+
+	return accountsMap, nil
 }

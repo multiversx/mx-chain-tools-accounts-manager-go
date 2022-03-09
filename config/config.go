@@ -14,9 +14,10 @@ type Config struct {
 	APIConfig              APIConfig
 }
 
-// GeneralSettingsConfig will hold the general settings for an accounts manager
+// GeneralConfig will hold the general settings for an accounts manager
 type GeneralConfig struct {
 	DelegationLegacyContractAddress string
+	LKMEXStakingContractAddress     string
 }
 
 // ClonerConfig holds the configuration necessary for a clone based indexer
