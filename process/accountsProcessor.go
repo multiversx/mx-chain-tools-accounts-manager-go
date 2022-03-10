@@ -43,7 +43,12 @@ func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.Account
 		return nil, nil, err
 	}
 
-	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators)
+	lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake)
 
 	calculateTotalStakeForAccounts(allAccounts)
 
@@ -66,7 +71,7 @@ func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithSta
 }
 
 func (ap *accountsProcessor) mergeAccounts(
-	legacyDelegators, validators, delegators map[string]*data.AccountInfoWithStakeValues,
+	legacyDelegators, validators, delegators, lkMexAccountsWithStake map[string]*data.AccountInfoWithStakeValues,
 ) (map[string]*data.AccountInfoWithStakeValues, []string) {
 	allAddresses := make([]string, 0)
 	mergedAccounts := make(map[string]*data.AccountInfoWithStakeValues)
@@ -103,6 +108,19 @@ func (ap *accountsProcessor) mergeAccounts(
 
 		mergedAccounts[address].Delegation = stakedDelegators.Delegation
 		mergedAccounts[address].DelegationNum = stakedDelegators.DelegationNum
+	}
+
+	for address, lkMexAccount := range lkMexAccountsWithStake {
+		_, ok := mergedAccounts[address]
+		if !ok {
+			mergedAccounts[address] = lkMexAccount
+
+			allAddresses = append(allAddresses, address)
+			continue
+		}
+
+		mergedAccounts[address].LKMEXStake = lkMexAccount.LKMEXStake
+		mergedAccounts[address].LKMEXStakeNum = lkMexAccount.LKMEXStakeNum
 	}
 
 	return mergedAccounts, allAddresses

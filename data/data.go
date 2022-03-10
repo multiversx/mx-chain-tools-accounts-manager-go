@@ -104,6 +104,9 @@ type StakeInfo struct {
 	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
 	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
+
+	LKMEXStake    string  `json:"lkMexStake,omitempty"`
+	LKMEXStakeNum float64 `json:"lkMexStakeNum,omitempty"`
 }
 
 // EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct

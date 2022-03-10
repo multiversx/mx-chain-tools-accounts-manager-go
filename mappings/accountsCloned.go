@@ -24,5 +24,8 @@ var AccountsCloned = Object{
 		"totalBalanceWithStakeNum": Object{
 			"type": "double",
 		},
+		"lkMexStakeNum": Object{
+			"type": "double",
+		},
 	},
 }
