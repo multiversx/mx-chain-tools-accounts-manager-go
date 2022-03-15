@@ -192,6 +192,11 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 
 // GetLKMEXStakeAccounts will fetch all accounts that have stake lkmex tokens
 func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
+	if ag.lkMexContractAddress == "" {
+		return accountsMap, nil
+	}
+
 	defer logExecutionTime(time.Now(), "Fetched accounts from lkmex staking contract")
 
 	vmRequest := &data.VmValueRequest{
@@ -219,7 +224,6 @@ func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoW
 		accountsStake[address] = stakedBalance.String()
 	}
 
-	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
 	for key, value := range accountsStake {
 		accountsMap[key] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
