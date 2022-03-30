@@ -63,22 +63,41 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 
 	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
 	for key, value := range activeListAccounts {
-		accountsMap[key] = &data.AccountInfoWithStakeValues{
-			StakeInfo: data.StakeInfo{
-				DelegationLegacyActive:    value,
-				DelegationLegacyActiveNum: core.ComputeBalanceAsFloat(value),
-			},
+		_, found := accountsMap[key]
+		if !found {
+			accountsMap[key] = &data.AccountInfoWithStakeValues{
+				StakeInfo: data.StakeInfo{
+					DelegationLegacyActive:    value,
+					DelegationLegacyActiveNum: core.ComputeBalanceAsFloat(value),
+				},
+			}
+
+			continue
 		}
+
+		valueStake, valueStakeNum := computeTotalBalance(value, accountsMap[key].DelegationLegacyActive)
+
+		accountsMap[key].DelegationLegacyActive = valueStake
+		accountsMap[key].DelegationLegacyActiveNum = valueStakeNum
 	}
 
 	for key, value := range fullWaitingListAccounts {
 		_, ok := accountsMap[key]
 		if !ok {
-			accountsMap[key] = &data.AccountInfoWithStakeValues{}
+			accountsMap[key] = &data.AccountInfoWithStakeValues{
+				StakeInfo: data.StakeInfo{
+					DelegationLegacyWaiting:    value,
+					DelegationLegacyWaitingNum: core.ComputeBalanceAsFloat(value),
+				},
+			}
+
+			continue
 		}
 
-		accountsMap[key].DelegationLegacyWaiting = value
-		accountsMap[key].DelegationLegacyWaitingNum = core.ComputeBalanceAsFloat(value)
+		valueWaiting, valueWaitingNum := computeTotalBalance(value, accountsMap[key].DelegationLegacyWaiting)
+
+		accountsMap[key].DelegationLegacyWaiting = valueWaiting
+		accountsMap[key].DelegationLegacyWaitingNum = valueWaitingNum
 	}
 
 	return accountsMap, nil
