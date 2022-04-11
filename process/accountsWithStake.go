@@ -62,7 +62,8 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 	}
 
 	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
-	for key, value := range activeListAccounts {
+	for _, legacyStakeInfo := range activeListAccounts {
+		key, value := legacyStakeInfo.Address, legacyStakeInfo.Staked
 		_, found := accountsMap[key]
 		if !found {
 			accountsMap[key] = &data.AccountInfoWithStakeValues{
@@ -81,7 +82,8 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		accountsMap[key].DelegationLegacyActiveNum = valueStakeNum
 	}
 
-	for key, value := range fullWaitingListAccounts {
+	for _, legacyWaitingInfo := range fullWaitingListAccounts {
+		key, value := legacyWaitingInfo.Address, legacyWaitingInfo.Staked
 		_, ok := accountsMap[key]
 		if !ok {
 			accountsMap[key] = &data.AccountInfoWithStakeValues{
@@ -103,15 +105,15 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 	return accountsMap, nil
 }
 
-func (ag *accountsGetter) getFullActiveListAccounts() (map[string]string, error) {
+func (ag *accountsGetter) getFullActiveListAccounts() ([]*data.StakedInfo, error) {
 	return ag.getAccountsVMQuery(getFullActiveList, 2)
 }
 
-func (ag *accountsGetter) getFullWaitingListAccounts() (map[string]string, error) {
+func (ag *accountsGetter) getFullWaitingListAccounts() ([]*data.StakedInfo, error) {
 	return ag.getAccountsVMQuery(getFullWaitingList, 3)
 }
 
-func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (map[string]string, error) {
+func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) ([]*data.StakedInfo, error) {
 	vmRequest := &data.VmValueRequest{
 		Address:    ag.delegationContractAddress,
 		FuncName:   funcName,
@@ -128,12 +130,15 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	}
 
 	returnedData := responseVmValue.Data.Data.ReturnData
-	accountsStake := make(map[string]string, 0)
+	accountsStake := make([]*data.StakedInfo, 0)
 	for idx := 0; idx < len(returnedData); idx += stepForLoop {
 		address := ag.pubKeyConverter.Encode(returnedData[idx])
 		stakedBalance := big.NewInt(0).SetBytes(returnedData[idx+1])
 
-		accountsStake[address] = stakedBalance.String()
+		accountsStake = append(accountsStake, &data.StakedInfo{
+			Address: address,
+			Staked:  stakedBalance.String(),
+		})
 	}
 
 	return accountsStake, nil
