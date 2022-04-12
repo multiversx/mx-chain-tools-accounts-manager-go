@@ -1,6 +1,6 @@
 [GeneralConfig]
     DelegationLegacyContractAddress = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
-    LKMEXStakingContractAddress     = "erd1qqqqqqqqqqqqqpgq5kuagsp8cda4mk25xz28zjxen5va7gg9d8ssvqlng0"
+    LKMEXStakingContractAddress     = "erd1qqqqqqqqqqqqqpgqt7tyyswqvplpcqnhwe20xqrj7q7ap27d2jps7zczse"
 
 
 [AddressPubkeyConverter]
