@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	nodeCore "github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/tidwall/gjson"
 )
 
@@ -128,6 +129,11 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	if responseVmValue.Error != "" {
 		return nil, fmt.Errorf("%s", responseVmValue.Error)
 	}
+	if responseVmValue.Data.Data != nil {
+		if responseVmValue.Data.Data.ReturnCode != vmcommon.Ok.String() {
+			return nil, fmt.Errorf("%s: %s", responseVmValue.Data.Data.ReturnCode, responseVmValue.Data.Data.ReturnMessage)
+		}
+	}
 
 	returnedData := responseVmValue.Data.Data.ReturnData
 	accountsStake := make([]*data.StakedInfo, 0)
@@ -236,6 +242,11 @@ func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoW
 	}
 	if responseVmValue.Error != "" {
 		return nil, fmt.Errorf("%s", responseVmValue.Error)
+	}
+	if responseVmValue.Data.Data != nil {
+		if responseVmValue.Data.Data.ReturnCode != vmcommon.Ok.String() {
+			return nil, fmt.Errorf("%s: %s", responseVmValue.Data.Data.ReturnCode, responseVmValue.Data.Data.ReturnMessage)
+		}
 	}
 
 	stepForLoop := 2

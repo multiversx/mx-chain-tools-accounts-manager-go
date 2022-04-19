@@ -1,5 +1,5 @@
 COUNT=0
-MAX_RETRIES=10
+MAX_RETRIES=20
 CURRENT_DATE=$(date +'%Y_%m_%d')
 
 if [[ $# -ne 2 ]]; then
