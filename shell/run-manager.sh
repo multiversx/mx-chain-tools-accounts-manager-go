@@ -25,7 +25,7 @@ while [ ${COUNT} -lt ${MAX_RETRIES} ]
 do
   CURRENT_LOGS_FILE="logs_${CURRENT_DATE}_$(( COUNT+1 )).txt"
 
-  ${PATH_TO_MANAGER} -config "${PATH_TO_CONFIG}" -type "reindex" >(tee -a "${CURRENT_LOGS_FILE}") 2>&1
+  ${PATH_TO_MANAGER} -config "${PATH_TO_CONFIG}" -type "reindex" > /proc/1/fd/1 2>&1 | tee -a "${CURRENT_LOGS_FILE}"
 
   ERROR_OUTPUT=$(grep ERROR "${CURRENT_LOGS_FILE}" )
 
