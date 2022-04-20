@@ -43,6 +43,7 @@ done
 if [ ${COUNT} -eq $(( MAX_RETRIES )) ]
 then
   echo "Reindex process failed, check logs file ${LOGS_FILE}"
+  exit 1
 else
   echo "Reindex accounts with stake success"
 fi
