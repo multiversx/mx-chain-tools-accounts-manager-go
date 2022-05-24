@@ -15,33 +15,43 @@ import (
 
 type reindexer struct {
 	sourceIndexer      crossIndex.ElasticClientHandler
-	destinationIndexer crossIndex.ElasticClientHandler
+	destinationClients []crossIndex.ElasticClientHandler
 	count              int
 }
 
 var log = logger.GetOrCreate("reindexer")
 
 // New returns a new instance of reindexer
-func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer crossIndex.ElasticClientHandler) (*reindexer, error) {
+func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer []crossIndex.ElasticClientHandler) (*reindexer, error) {
 	if check.IfNil(sourceIndexer) {
 		return nil, fmt.Errorf("%w for sourceIndexer", crossIndex.ErrNilElasticClient)
 	}
-	if check.IfNil(destinationIndexer) {
-		return nil, fmt.Errorf("%w for destinationIndexer", crossIndex.ErrNilElasticClient)
+	for idx, dstClient := range destinationIndexer {
+		if check.IfNil(dstClient) {
+			return nil, fmt.Errorf("%w for destinationIndexer, index %d", crossIndex.ErrNilElasticClient, idx)
+		}
 	}
 
 	return &reindexer{
 		sourceIndexer:      sourceIndexer,
-		destinationIndexer: destinationIndexer,
+		destinationClients: destinationIndexer,
 	}, nil
 }
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error {
 	log.Info("Create a new index with mapping")
-	err := r.destinationIndexer.CreateIndexWithMapping(destinationIndex, crossIndex.AccountsTemplate.ToBuffer())
-	if err != nil {
-		return err
+
+	for _, dstClient := range r.destinationClients {
+		err := dstClient.CreateIndexWithMapping(destinationIndex, crossIndex.AccountsTemplate.ToBuffer())
+		if err != nil {
+			return err
+		}
+
+		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, crossIndex.AccountsClonedPolicy.ToBuffer())
+		if err != nil {
+			return err
+		}
 	}
 
 	saverFunc := func(responseBytes []byte) error {
@@ -62,12 +72,18 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 }
 
 func (r *reindexer) indexAllAccounts(mapAllAccounts map[string]*data.AccountInfoWithStakeValues, destinationIndex string) error {
-	acIndexer, err := accountsIndexer.NewAccountsIndexer(r.destinationIndexer)
-	if err != nil {
-		return err
-	}
+	for _, dstClient := range r.destinationClients {
+		acIndexer, err := accountsIndexer.NewAccountsIndexer(dstClient)
+		if err != nil {
+			return err
+		}
 
-	return acIndexer.IndexAccounts(mapAllAccounts, destinationIndex)
+		err = acIndexer.IndexAccounts(mapAllAccounts, destinationIndex)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getAllAccounts(responseBytes []byte) (map[string]*data.AccountInfoWithStakeValues, error) {

@@ -36,7 +36,7 @@ var (
 	}
 	typeFlag = cli.StringFlag{
 		Name:  "type",
-		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: clone)",
+		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: reindex)",
 		Value: "reindex",
 	}
 )

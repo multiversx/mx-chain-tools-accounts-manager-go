@@ -1,8 +1,10 @@
 package process
 
 import (
+	"errors"
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
+	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/cloner"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/reindexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
@@ -63,7 +65,7 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	destinationEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.DestinationElasticSearchClient)
+	destinationESClients, err := createESClients(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -86,10 +88,28 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	reindexerProc, err := reindexer.New(sourceEsClient, destinationEsClient)
+	reindexerProc, err := reindexer.New(sourceEsClient, destinationESClients)
 	if err != nil {
 		return nil, err
 	}
 
 	return NewReindexerDataProcessor(acctsProcessor, reindexerProc)
+}
+
+func createESClients(cfg *config.Config) ([]crossIndex.ElasticClientHandler, error) {
+	if len(cfg.Destination.DestinationElasticSearchClients) == 0 {
+		return nil, errors.New("empty destination clients array")
+	}
+
+	clients := make([]crossIndex.ElasticClientHandler, 0)
+	for _, esCfg := range cfg.Destination.DestinationElasticSearchClients {
+		client, err := elasticClient.NewElasticClient(esCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		clients = append(clients, client)
+	}
+
+	return clients, nil
 }

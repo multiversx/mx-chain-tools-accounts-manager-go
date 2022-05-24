@@ -5,6 +5,8 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/mappings"
 )
 
+const AccountsPolicyName = "accounts-manager-retention-policy"
+
 // AllAccountsResponse is a structure that matches the response format for an all accounts request
 type AllAccountsResponse struct {
 	ScrollID string `json:"_scroll_id"`
@@ -47,7 +49,27 @@ var AccountsTemplate = mappings.Object{
 		},
 	},
 	"settings": mappings.Object{
-		"number_of_shards":   1,
-		"number_of_replicas": 1,
+		"number_of_shards":     1,
+		"number_of_replicas":   1,
+		"index.lifecycle.name": AccountsPolicyName,
+	},
+}
+
+var AccountsClonedPolicy = mappings.Object{
+	"policy": mappings.Object{
+		"phases": mappings.Object{
+			"hot": mappings.Object{
+				"min_age": "0ms",
+				"actions": mappings.Object{},
+			},
+			"delete": mappings.Object{
+				"min_age": "90d",
+				"actions": mappings.Object{
+					"delete": mappings.Object{
+						"delete_searchable_snapshot": true,
+					},
+				},
+			},
+		},
 	},
 }
