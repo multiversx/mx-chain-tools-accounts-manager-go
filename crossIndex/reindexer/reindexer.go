@@ -2,13 +2,13 @@ package reindexer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
-
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 )
@@ -30,6 +30,9 @@ func New(
 ) {
 	if check.IfNil(sourceIndexer) {
 		return nil, fmt.Errorf("%w for sourceIndexer", crossIndex.ErrNilElasticClient)
+	}
+	if pathToIndicesConfig == "" {
+		return nil, errors.New("empty path to the indices config folder")
 	}
 	for idx, dstClient := range destinationIndexer {
 		if check.IfNil(dstClient) {

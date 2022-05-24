@@ -199,12 +199,12 @@ func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) 
 	return nil
 }
 
+// PutPolicy will put in Elasticsearch cluster the provided policy with the given name
 func (ec *esClient) PutPolicy(policyName string, policy *bytes.Buffer) error {
 	res, err := ec.client.ILM.PutLifecycle(
 		policyName,
 		ec.client.ILM.PutLifecycle.WithBody(policy),
 	)
-
 	if err != nil {
 		return err
 	}

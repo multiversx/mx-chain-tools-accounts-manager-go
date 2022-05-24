@@ -4,6 +4,7 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 )
 
+// AccountsPolicyName is the name of the policy for the accounts index
 const AccountsPolicyName = "accounts-manager-retention-policy"
 
 // AllAccountsResponse is a structure that matches the response format for an all accounts request
