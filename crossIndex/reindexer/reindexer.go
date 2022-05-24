@@ -14,15 +14,20 @@ import (
 )
 
 type reindexer struct {
-	sourceIndexer      crossIndex.ElasticClientHandler
-	destinationClients []crossIndex.ElasticClientHandler
-	count              int
+	sourceIndexer       crossIndex.ElasticClientHandler
+	destinationClients  []crossIndex.ElasticClientHandler
+	count               int
+	pathToIndicesConfig string
 }
 
 var log = logger.GetOrCreate("reindexer")
 
 // New returns a new instance of reindexer
-func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer []crossIndex.ElasticClientHandler) (*reindexer, error) {
+func New(
+	sourceIndexer crossIndex.ElasticClientHandler,
+	destinationIndexer []crossIndex.ElasticClientHandler,
+	pathToIndicesConfig string) (*reindexer, error,
+) {
 	if check.IfNil(sourceIndexer) {
 		return nil, fmt.Errorf("%w for sourceIndexer", crossIndex.ErrNilElasticClient)
 	}
@@ -33,8 +38,9 @@ func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer []cro
 	}
 
 	return &reindexer{
-		sourceIndexer:      sourceIndexer,
-		destinationClients: destinationIndexer,
+		sourceIndexer:       sourceIndexer,
+		destinationClients:  destinationIndexer,
+		pathToIndicesConfig: pathToIndicesConfig,
 	}, nil
 }
 
@@ -42,13 +48,18 @@ func New(sourceIndexer crossIndex.ElasticClientHandler, destinationIndexer []cro
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error {
 	log.Info("Create a new index with mapping")
 
+	template, policy, err := readTemplateAndPolicy(r.pathToIndicesConfig)
+	if err != nil {
+		return err
+	}
+
 	for _, dstClient := range r.destinationClients {
-		err := dstClient.CreateIndexWithMapping(destinationIndex, crossIndex.AccountsTemplate.ToBuffer())
+		err = dstClient.CreateIndexWithMapping(destinationIndex, template)
 		if err != nil {
 			return err
 		}
 
-		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, crossIndex.AccountsClonedPolicy.ToBuffer())
+		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, policy)
 		if err != nil {
 			return err
 		}

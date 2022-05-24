@@ -1,0 +1,18 @@
+{
+  "policy": {
+    "phases": {
+      "delete": {
+        "actions": {
+          "delete": {
+            "delete_searchable_snapshot": true
+          }
+        },
+        "min_age": "90d"
+      },
+      "hot": {
+        "actions": {},
+        "min_age": "0ms"
+      }
+    }
+  }
+}

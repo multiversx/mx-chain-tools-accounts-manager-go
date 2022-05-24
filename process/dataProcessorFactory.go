@@ -14,12 +14,12 @@ import (
 )
 
 // CreateDataProcessor will create a new instance of a data processor
-func CreateDataProcessor(cfg *config.Config, indexType string) (DataProcessor, error) {
+func CreateDataProcessor(cfg *config.Config, indexType, indicesConfigPath string) (DataProcessor, error) {
 	if indexType == "clone" {
 		return getClonerDataProcessor(cfg)
 	}
 
-	return getReindexerDataProcessor(cfg)
+	return getReindexerDataProcessor(cfg, indicesConfigPath)
 }
 
 func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
@@ -59,7 +59,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 	return NewClonerDataProcessor(acctsIndexer, acctsProcessor, indexCloner)
 }
 
-func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
+func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (DataProcessor, error) {
 	sourceEsClient, err := elasticClient.NewElasticClient(cfg.Reindexer.SourceElasticSearchClient)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func getReindexerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	reindexerProc, err := reindexer.New(sourceEsClient, destinationESClients)
+	reindexerProc, err := reindexer.New(sourceEsClient, destinationESClients, indicesConfigPath)
 	if err != nil {
 		return nil, err
 	}

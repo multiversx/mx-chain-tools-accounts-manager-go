@@ -1,0 +1,35 @@
+{
+  "mappings": {
+    "properties": {
+      "balanceNum": {
+        "type": "double"
+      },
+      "delegationLegacyActiveNum": {
+        "type": "double"
+      },
+      "delegationLegacyWaitingNum": {
+        "type": "double"
+      },
+      "delegationNum": {
+        "type": "double"
+      },
+      "totalBalanceWithStakeNum": {
+        "type": "double"
+      },
+      "totalStakeNum": {
+        "type": "double"
+      },
+      "validatorsActiveNum": {
+        "type": "double"
+      },
+      "validatorsTopUpNum": {
+        "type": "double"
+      }
+    }
+  },
+  "settings": {
+    "index.lifecycle.name": "accounts-manager-retention-policy",
+    "number_of_replicas": 1,
+    "number_of_shards": 1
+  }
+}
