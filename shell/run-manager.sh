@@ -31,7 +31,7 @@ while [ ${COUNT} -lt ${MAX_RETRIES} ]
 do
   CURRENT_LOGS_FILE="logs_${CURRENT_DATE}_$(( COUNT+1 )).txt"
 
-  ${PATH_TO_MANAGER} -config "${PATH_TO_CONFIG}" -type "reindex" -ndices-path "${PATH_TO_INDICES_CONFIG}" | tee -a "${CURRENT_LOGS_FILE}"
+  ${PATH_TO_MANAGER} -config "${PATH_TO_CONFIG}" -type "reindex" -indices-path "${PATH_TO_INDICES_CONFIG}" | tee -a "${CURRENT_LOGS_FILE}"
 
   ERROR_OUTPUT=$(grep ERROR "${CURRENT_LOGS_FILE}" )
 
