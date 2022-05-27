@@ -1,6 +1,7 @@
 package reindexer
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -56,13 +57,16 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 		return err
 	}
 
+	templateBytes := template.Bytes()
+	policyBytes := policy.Bytes()
+
 	for _, dstClient := range r.destinationClients {
-		err = dstClient.CreateIndexWithMapping(destinationIndex, template)
+		err = dstClient.CreateIndexWithMapping(destinationIndex, bytes.NewBuffer(templateBytes))
 		if err != nil {
 			return err
 		}
 
-		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, policy)
+		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, bytes.NewBuffer(policyBytes))
 		if err != nil {
 			return err
 		}
