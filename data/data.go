@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 )
 
 // GenericAPIResponse defines the structure of all responses on API endpoints
@@ -102,8 +102,6 @@ type StakeInfo struct {
 	DelegationNum              float64 `json:"delegationNum,omitempty"`
 	TotalStake                 string  `json:"totalStake,omitempty"`
 	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
-	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
-	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
 
 	LKMEXStake    string  `json:"lkMexStake,omitempty"`
 	LKMEXStakeNum float64 `json:"lkMexStakeNum,omitempty"`

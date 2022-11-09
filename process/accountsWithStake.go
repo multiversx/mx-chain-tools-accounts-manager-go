@@ -8,8 +8,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	nodeCore "github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
+	nodeCore "github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/tidwall/gjson"
 )
 
@@ -20,6 +20,7 @@ const (
 	getFullWaitingList  = "getFullWaitingList"
 	getFullActiveList   = "getFullActiveList"
 	lkMexSnapShot       = "getSnapshot"
+	getEnergyAmount     = "getEnergyAmountForUser"
 )
 
 type accountsGetter struct {

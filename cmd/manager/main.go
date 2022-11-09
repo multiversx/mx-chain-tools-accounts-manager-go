@@ -5,8 +5,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/urfave/cli"
 )
 

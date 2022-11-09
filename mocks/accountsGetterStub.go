@@ -10,6 +10,10 @@ type AccountsGetterStub struct {
 	GetDelegatorsAccountsCalled       func() (map[string]*data.AccountInfoWithStakeValues, error)
 }
 
+func (a *AccountsGetterStub) GetEnergyAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
+	return nil, nil
+}
+
 func (a *AccountsGetterStub) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	return nil, nil
 }

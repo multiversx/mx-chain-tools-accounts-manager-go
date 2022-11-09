@@ -2,15 +2,17 @@ package config
 
 import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-go/config"
 )
 
 // Config will hold the whole config file's data
 type Config struct {
 	GeneralConfig          GeneralConfig
-	AddressPubkeyConverter config.PubkeyConfig
-	Cloner                 ClonerConfig
-	Reindexer              struct {
+	AddressPubkeyConverter struct {
+		Length int
+		Type   string
+	}
+	Cloner    ClonerConfig
+	Reindexer struct {
 		SourceElasticSearchClient data.EsClientConfig
 	}
 	Destination struct {

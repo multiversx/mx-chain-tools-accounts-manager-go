@@ -1,6 +1,7 @@
 [GeneralConfig]
     DelegationLegacyContractAddress = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
     LKMEXStakingContractAddress     = "erd1qqqqqqqqqqqqqpgqt7tyyswqvplpcqnhwe20xqrj7q7ap27d2jps7zczse"
+    EnergyContractAddress           = "erd1qqqqqqqqqqqqqpgqnyuph46rqr29qv5gqhyxh429zcta8r0ppr9s048rjw"
 
 
 [AddressPubkeyConverter]
@@ -8,6 +9,9 @@
     Length = 32
     # Type specifies the type of public keys: hex or bech32
     Type = "bech32"
+
+[Marshalizer]
+    Type = "gogo protobuf"
 
 [Cloner]
     [Cloner.ElasticSearchClient]

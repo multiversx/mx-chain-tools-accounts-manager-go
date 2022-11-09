@@ -1,6 +1,6 @@
 package process
 
-import "github.com/ElrondNetwork/elrond-go-logger/check"
+import "github.com/ElrondNetwork/elrond-go-core/core/check"
 
 type reindexerDataProcessor struct {
 	accountsProcessor AccountsProcessorHandler

@@ -10,8 +10,8 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-logger/check"
 )
 
 type reindexer struct {

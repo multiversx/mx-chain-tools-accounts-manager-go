@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
@@ -10,7 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/restClient"
-	"github.com/ElrondNetwork/elrond-go/data/state/factory"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 )
 
 // CreateDataProcessor will create a new instance of a data processor
@@ -33,7 +34,7 @@ func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
 		return nil, err
 	}
 
-	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (Da
 		return nil, err
 	}
 
-	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
 	if err != nil {
 		return nil, err
 	}

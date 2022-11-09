@@ -44,6 +44,7 @@ type AccountsGetterHandler interface {
 	GetValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	GetEnergyAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 }
 
 // Cloner defines what a clone should be able to do
