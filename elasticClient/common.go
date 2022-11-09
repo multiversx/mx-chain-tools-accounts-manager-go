@@ -9,6 +9,12 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
+// Response is a structure that holds response from Kibana
+type responseCreatePolicy struct {
+	Error  interface{} `json:"error,omitempty"`
+	Status int         `json:"status"`
+}
+
 func unWrapEsConfig(wrappedConfig data.EsClientConfig) elasticsearch.Config {
 	return elasticsearch.Config{
 		Addresses: []string{wrappedConfig.Address},

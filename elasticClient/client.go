@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
@@ -15,7 +16,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const numOfErrorsToExtractBulkResponse = 5
+const (
+	numOfErrorsToExtractBulkResponse = 5
+
+	errPolicyAlreadyExists = "document already exists"
+)
 
 var log = logger.GetOrCreate("elasticClient")
 
@@ -190,6 +195,35 @@ func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) 
 	}
 
 	defer closeBody(res)
+
+	return nil
+}
+
+// PutPolicy will put in Elasticsearch cluster the provided policy with the given name
+func (ec *esClient) PutPolicy(policyName string, policy *bytes.Buffer) error {
+	res, err := ec.client.ILM.PutLifecycle(
+		policyName,
+		ec.client.ILM.PutLifecycle.WithBody(policy),
+	)
+	if err != nil {
+		return err
+	}
+
+	bodyBytes, errGet := getBytesFromResponse(res)
+	if errGet != nil {
+		return errGet
+	}
+
+	response := &responseCreatePolicy{}
+	err = json.Unmarshal(bodyBytes, response)
+	if err != nil {
+		return err
+	}
+
+	errStr := fmt.Sprintf("%v", response.Error)
+	if response.Status == http.StatusConflict && !strings.Contains(errStr, errPolicyAlreadyExists) {
+		return fmt.Errorf("error esClient.PutPolicy: %s", errStr)
+	}
 
 	return nil
 }

@@ -19,6 +19,11 @@ var (
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
+	indicesConfigPath = cli.StringFlag{
+		Name:  "indices-path",
+		Usage: "The path to the indices folder",
+		Value: "./config/indices",
+	}
 
 	// logLevel defines the logger level
 	logLevel = cli.StringFlag{
@@ -36,7 +41,7 @@ var (
 	}
 	typeFlag = cli.StringFlag{
 		Name:  "type",
-		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: clone)",
+		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: reindex)",
 		Value: "reindex",
 	}
 )
@@ -52,6 +57,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		typeFlag,
+		indicesConfigPath,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -83,7 +89,7 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	dataProc, err := process.CreateDataProcessor(generalConfig, ctx.GlobalString(typeFlag.Name))
+	dataProc, err := process.CreateDataProcessor(generalConfig, ctx.GlobalString(typeFlag.Name), ctx.GlobalString(indicesConfigPath.Name))
 	if err != nil {
 		return err
 	}
