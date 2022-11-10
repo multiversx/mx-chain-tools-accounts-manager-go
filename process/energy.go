@@ -19,6 +19,10 @@ const (
 
 // GetAccountsWithEnergy will return accounts with energy
 func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
+	if ag.energyContractAddress == "" {
+		return map[string]*data.AccountInfoWithStakeValues{}, nil
+	}
+
 	genericAPIResponse := &data.GenericAPIResponse{}
 	path := fmt.Sprintf(pathAccountKeys, ag.energyContractAddress)
 	err := ag.restClient.CallGetRestEndPoint(path, genericAPIResponse, core.GetEmptyApiCredentials())
