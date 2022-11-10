@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	nodeCore "github.com/ElrondNetwork/elrond-go-core/core"
@@ -20,7 +21,7 @@ const (
 	getFullWaitingList  = "getFullWaitingList"
 	getFullActiveList   = "getFullActiveList"
 	lkMexSnapShot       = "getSnapshot"
-	getEnergyAmount     = "getEnergyAmountForUser"
+	pathAccountKeys     = "/address/%s/keys"
 )
 
 type accountsGetter struct {
@@ -30,22 +31,23 @@ type accountsGetter struct {
 
 	delegationContractAddress string
 	lkMexContractAddress      string
+	energyContractAddress     string
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
 func NewAccountsGetter(
 	restClient RestClientHandler,
-	delegationContractAddress string,
 	pubKeyConverter nodeCore.PubkeyConverter,
 	authenticationData data.RestApiAuthenticationData,
-	lkMexContractAddress string,
+	generalConfig config.GeneralConfig,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
 		restClient:                restClient,
-		delegationContractAddress: delegationContractAddress,
 		pubKeyConverter:           pubKeyConverter,
 		authenticationData:        authenticationData,
-		lkMexContractAddress:      lkMexContractAddress,
+		lkMexContractAddress:      generalConfig.LKMEXStakingContractAddress,
+		energyContractAddress:     generalConfig.EnergyContractAddress,
+		delegationContractAddress: generalConfig.DelegationLegacyContractAddress,
 	}, nil
 }
 
@@ -270,4 +272,8 @@ func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoW
 	}
 
 	return accountsMap, nil
+}
+
+func logExecutionTime(start time.Time, message string) {
+	log.Info(message, "duration in seconds", time.Since(start).Seconds())
 }

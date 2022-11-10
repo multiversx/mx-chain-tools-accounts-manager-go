@@ -6,58 +6,18 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
-	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/cloner"
 	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/reindexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
-	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
 	"github.com/ElrondNetwork/elrond-accounts-manager/restClient"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
+var log = logger.GetOrCreate("process")
+
 // CreateDataProcessor will create a new instance of a data processor
-func CreateDataProcessor(cfg *config.Config, indexType, indicesConfigPath string) (DataProcessor, error) {
-	if indexType == "clone" {
-		return getClonerDataProcessor(cfg)
-	}
-
+func CreateDataProcessor(cfg *config.Config, indicesConfigPath string) (DataProcessor, error) {
 	return getReindexerDataProcessor(cfg, indicesConfigPath)
-}
-
-func getClonerDataProcessor(cfg *config.Config) (DataProcessor, error) {
-	esClient, err := elasticClient.NewElasticClient(cfg.Cloner.ElasticSearchClient)
-	if err != nil {
-		return nil, err
-	}
-
-	rClient, err := restClient.NewRestClient(cfg.APIConfig.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
-	if err != nil {
-		return nil, err
-	}
-
-	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData, cfg.GeneralConfig.LKMEXStakingContractAddress)
-
-	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
-	if err != nil {
-		return nil, err
-	}
-
-	acctsIndexer, err := accountsIndexer.NewAccountsIndexer(esClient)
-	if err != nil {
-		return nil, err
-	}
-
-	indexCloner, err := cloner.New(esClient)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClonerDataProcessor(acctsIndexer, acctsProcessor, indexCloner)
 }
 
 func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (DataProcessor, error) {
@@ -82,7 +42,15 @@ func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (Da
 	}
 
 	authenticationData := core.FetchAuthenticationData(cfg.APIConfig)
-	acctGetter, err := NewAccountsGetter(rClient, cfg.GeneralConfig.DelegationLegacyContractAddress, pubKeyConverter, authenticationData, cfg.GeneralConfig.LKMEXStakingContractAddress)
+	acctGetter, err := NewAccountsGetter(
+		rClient,
+		pubKeyConverter,
+		authenticationData,
+		cfg.GeneralConfig,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	acctsProcessor, err := NewAccountsProcessor(rClient, acctGetter)
 	if err != nil {

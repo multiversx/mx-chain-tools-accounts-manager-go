@@ -10,9 +10,6 @@
     # Type specifies the type of public keys: hex or bech32
     Type = "bech32"
 
-[Marshalizer]
-    Type = "gogo protobuf"
-
 [Cloner]
     [Cloner.ElasticSearchClient]
         Address = "http://127.0.0.1:9200"

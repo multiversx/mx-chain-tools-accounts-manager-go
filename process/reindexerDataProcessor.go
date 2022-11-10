@@ -27,12 +27,17 @@ func NewReindexerDataProcessor(
 
 // ProcessAccountsData will process accounts data
 func (dp *reindexerDataProcessor) ProcessAccountsData() error {
-	accountsRest, _, err := dp.accountsProcessor.GetAllAccountsWithStake()
+	epoch, err := dp.accountsProcessor.GetCurrentEpoch()
 	if err != nil {
 		return err
 	}
 
-	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
+	accountsRest, _, err := dp.accountsProcessor.GetAllAccountsWithStake(epoch)
+	if err != nil {
+		return err
+	}
+
+	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex(epoch)
 	if err != nil {
 		return err
 	}

@@ -25,6 +25,7 @@ type Config struct {
 type GeneralConfig struct {
 	DelegationLegacyContractAddress string
 	LKMEXStakingContractAddress     string
+	EnergyContractAddress           string
 }
 
 // ClonerConfig holds the configuration necessary for a clone based indexer

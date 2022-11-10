@@ -6,45 +6,43 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 )
 
-// ElasticClientHandler defines what an elastic client should be able do
+// ElasticClientHandler defines what an elastic client should be able to do
 type ElasticClientHandler interface {
-	CloneIndex(index, targetIndex string) (cloned bool, err error)
 	PutMapping(targetIndex string, body *bytes.Buffer) error
-	WaitYellowStatus() error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoMultiGet(ids []string, index string) ([]byte, error)
 	DoScrollRequestAllDocuments(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
-	UnsetReadOnly(index string) error
 	IsInterfaceNil() bool
 }
 
-// // RestClientHandler defines what a rest client should be able do
+// RestClientHandler defines what a rest client should be able to do
 type RestClientHandler interface {
 	CallGetRestEndPoint(path string, value interface{}, authenticationData data.RestApiAuthenticationData) error
 	CallPostRestEndPoint(path string, data interface{}, response interface{}, authenticationData data.RestApiAuthenticationData) error
 }
 
-// AccountsIndexerHandler defines what an accounts indexer should be able do
+// AccountsIndexerHandler defines what an accounts indexer should be able to do
 type AccountsIndexerHandler interface {
 	GetAccounts(addresses []string, index string) (map[string]*data.AccountInfoWithStakeValues, error)
 	IndexAccounts(accounts map[string]*data.AccountInfoWithStakeValues, index string) error
 	IsInterfaceNil() bool
 }
 
-// AccountsProcessorHandler defines what an accounts processor should be able do
+// AccountsProcessorHandler defines what an accounts processor should be able to do
 type AccountsProcessorHandler interface {
-	GetAllAccountsWithStake() (map[string]*data.AccountInfoWithStakeValues, []string, error)
-	ComputeClonedAccountsIndex() (string, error)
+	GetCurrentEpoch() (uint32, error)
+	GetAllAccountsWithStake(uint32) (map[string]*data.AccountInfoWithStakeValues, []string, error)
+	ComputeClonedAccountsIndex(uint32) (string, error)
 	IsInterfaceNil() bool
 }
 
-// AccountsGetterHandler defines what an accounts getter should be able do
+// AccountsGetterHandler defines what an accounts getter should be able to do
 type AccountsGetterHandler interface {
 	GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
-	GetEnergyAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
+	GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error)
 }
 
 // Cloner defines what a clone should be able to do

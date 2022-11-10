@@ -27,7 +27,7 @@ func NewAccountsProcessor(restClient RestClientHandler, acctsGetter AccountsGett
 }
 
 // GetAllAccountsWithStake will return all accounts with stake
-func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.AccountInfoWithStakeValues, []string, error) {
+func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, []string, error) {
 	legacyDelegators, err := ap.GetLegacyDelegatorsAccounts()
 	if err != nil {
 		return nil, nil, err
@@ -48,7 +48,12 @@ func (ap *accountsProcessor) GetAllAccountsWithStake() (map[string]*data.Account
 		return nil, nil, err
 	}
 
-	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake)
+	accountsWithEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
 
 	calculateTotalStakeForAccounts(allAccounts)
 
@@ -71,7 +76,7 @@ func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithSta
 }
 
 func (ap *accountsProcessor) mergeAccounts(
-	legacyDelegators, validators, delegators, lkMexAccountsWithStake map[string]*data.AccountInfoWithStakeValues,
+	legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy map[string]*data.AccountInfoWithStakeValues,
 ) (map[string]*data.AccountInfoWithStakeValues, []string) {
 	allAddresses := make([]string, 0)
 	mergedAccounts := make(map[string]*data.AccountInfoWithStakeValues)
@@ -123,25 +128,42 @@ func (ap *accountsProcessor) mergeAccounts(
 		mergedAccounts[address].LKMEXStakeNum = lkMexAccount.LKMEXStakeNum
 	}
 
+	for address, energyAccounts := range accountsWithEnergy {
+		_, ok := mergedAccounts[address]
+		if !ok {
+			mergedAccounts[address] = energyAccounts
+
+			allAddresses = append(allAddresses, address)
+			continue
+		}
+
+		mergedAccounts[address].Energy = energyAccounts.Energy
+		mergedAccounts[address].EnergyNum = energyAccounts.EnergyNum
+	}
+
 	return mergedAccounts, allAddresses
 }
 
 // ComputeClonedAccountsIndex will compute cloned accounts index based on current epoch
-func (ap *accountsProcessor) ComputeClonedAccountsIndex() (string, error) {
+func (ap *accountsProcessor) ComputeClonedAccountsIndex(epoch uint32) (string, error) {
 	log.Info("Compute name of the new index...")
 
+	return fmt.Sprintf("%s_%d", accountsIndex, epoch), nil
+}
+
+// GetCurrentEpoch will fetch the current epoch from the network
+func (ap *accountsProcessor) GetCurrentEpoch() (uint32, error) {
 	genericAPIResponse := &data.GenericAPIResponse{}
 	err := ap.restClient.CallGetRestEndPoint(pathNodeStatusMeta, genericAPIResponse, core.GetEmptyApiCredentials())
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	if genericAPIResponse.Error != "" {
-		return "", fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
+		return 0, fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
 	}
 
 	epoch := gjson.Get(string(genericAPIResponse.Data), "status.erd_epoch_number")
-
-	return fmt.Sprintf("%s_%s", accountsIndex, epoch.String()), nil
+	return uint32(epoch.Num), nil
 }
 
 func computeTotalBalance(balances ...string) (string, float64) {

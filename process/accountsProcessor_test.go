@@ -40,7 +40,7 @@ func TestAccountsProcessor_GetAllAccountsWithStake(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	allAccounts, allAddresses, err := ap.GetAllAccountsWithStake()
+	allAccounts, allAddresses, err := ap.GetAllAccountsWithStake(0)
 	require.Nil(t, err)
 	require.Equal(t, len(allAccounts), len(allAddresses))
 

@@ -105,6 +105,8 @@ type StakeInfo struct {
 
 	LKMEXStake    string  `json:"lkMexStake,omitempty"`
 	LKMEXStakeNum float64 `json:"lkMexStakeNum,omitempty"`
+	Energy        string  `json:"energy"`
+	EnergyNum     float64 `json:"energyNum"`
 }
 
 // EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct
