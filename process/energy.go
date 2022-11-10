@@ -58,7 +58,7 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 
 		energyValue := calculateEnergyValueBasedOnCurrentEpoch(energy, currentEpoch)
 
-		// ignore address with energyValue less then zero
+		// ignore addresses with energyValue less than zero
 		zero := big.NewInt(0)
 		if zero.Cmp(energyValue) > 0 {
 			continue
