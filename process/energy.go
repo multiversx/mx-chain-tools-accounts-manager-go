@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/core"
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
@@ -22,6 +23,8 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 	if ag.energyContractAddress == "" {
 		return map[string]*data.AccountInfoWithStakeValues{}, nil
 	}
+
+	defer logExecutionTime(time.Now(), "Fetched accounts from energy contract")
 
 	genericAPIResponse := &data.GenericAPIResponse{}
 	path := fmt.Sprintf(pathAccountKeys, ag.energyContractAddress)
@@ -58,7 +61,7 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 
 		energyValue := calculateEnergyValueBasedOnCurrentEpoch(energy, currentEpoch)
 
-		// ignore addresses with energyValue less than zero
+		// ignore addresses with energyValue less or equal to zero
 		zero := big.NewInt(0)
 		if zero.Cmp(energyValue) > 0 {
 			continue
@@ -91,9 +94,9 @@ func (ag *accountsGetter) extractAddressFromKey(key string) (string, bool) {
 	return ag.pubKeyConverter.Encode(addressBytes), true
 }
 
-type energyStruc struct {
-	Amount            *big.Int
+type energyStruct struct {
 	LastUpdateEpoch   uint32
+	Amount            *big.Int
 	TotalLockedTokens *big.Int
 }
 
@@ -102,7 +105,7 @@ const (
 	numBytesForU64Value       = 8
 )
 
-func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruc, bool) {
+func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruct, bool) {
 	decodedBytes, err := hex.DecodeString(value)
 	if err != nil {
 		log.Warn("cannot decode energy structure bytes", "error", err)
@@ -141,7 +144,7 @@ func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruc, bo
 
 	amount := big.NewInt(0).SetBytes(amountValueInBytes)
 	totalLockedTokens := big.NewInt(0).SetBytes(lockTokenValueInBytes)
-	energy := &energyStruc{
+	energy := &energyStruct{
 		Amount:            amount,
 		LastUpdateEpoch:   uint32(lastUpdateEpochUint64),
 		TotalLockedTokens: totalLockedTokens,
@@ -150,7 +153,7 @@ func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruc, bo
 	return energy, true
 }
 
-func calculateEnergyValueBasedOnCurrentEpoch(energy *energyStruc, currentEpoch uint32) *big.Int {
+func calculateEnergyValueBasedOnCurrentEpoch(energy *energyStruct, currentEpoch uint32) *big.Int {
 	coefficient := currentEpoch - energy.LastUpdateEpoch
 	valueToSubtract := big.NewInt(0).Mul(big.NewInt(int64(coefficient)), energy.TotalLockedTokens)
 	energyValue := big.NewInt(0).Sub(energy.Amount, valueToSubtract)

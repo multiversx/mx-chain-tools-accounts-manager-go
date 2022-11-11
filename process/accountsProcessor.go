@@ -128,17 +128,17 @@ func (ap *accountsProcessor) mergeAccounts(
 		mergedAccounts[address].LKMEXStakeNum = lkMexAccount.LKMEXStakeNum
 	}
 
-	for address, energyAccounts := range accountsWithEnergy {
+	for address, energyAccount := range accountsWithEnergy {
 		_, ok := mergedAccounts[address]
 		if !ok {
-			mergedAccounts[address] = energyAccounts
+			mergedAccounts[address] = energyAccount
 
 			allAddresses = append(allAddresses, address)
 			continue
 		}
 
-		mergedAccounts[address].Energy = energyAccounts.Energy
-		mergedAccounts[address].EnergyNum = energyAccounts.EnergyNum
+		mergedAccounts[address].Energy = energyAccount.Energy
+		mergedAccounts[address].EnergyNum = energyAccount.EnergyNum
 	}
 
 	return mergedAccounts, allAddresses
