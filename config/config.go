@@ -11,7 +11,6 @@ type Config struct {
 		Length int
 		Type   string
 	}
-	Cloner    ClonerConfig
 	Reindexer struct {
 		SourceElasticSearchClient data.EsClientConfig
 	}
@@ -26,11 +25,6 @@ type GeneralConfig struct {
 	DelegationLegacyContractAddress string
 	LKMEXStakingContractAddress     string
 	EnergyContractAddress           string
-}
-
-// ClonerConfig holds the configuration necessary for a clone based indexer
-type ClonerConfig struct {
-	ElasticSearchClient data.EsClientConfig
 }
 
 // APIConfig holds the configuration for the API

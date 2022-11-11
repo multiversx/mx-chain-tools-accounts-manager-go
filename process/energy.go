@@ -40,7 +40,7 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 }
 
 func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
-	pairs := gjson.Get(string(accountStorage), "data.pairs")
+	pairs := gjson.Get(string(accountStorage), "pairs")
 
 	keyValueMap := make(map[string]string)
 	err := json.Unmarshal([]byte(pairs.String()), &keyValueMap)
