@@ -242,7 +242,7 @@ func (ec *esClient) DoScrollRequestAllDocuments(
 	ec.countScroll++
 	res, err := ec.client.Search(
 		ec.client.Search.WithSize(9000),
-		ec.client.Search.WithScroll(10*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
+		ec.client.Search.WithScroll(2*time.Hour+time.Duration(ec.countScroll)*time.Millisecond),
 		ec.client.Search.WithContext(context.Background()),
 		ec.client.Search.WithIndex(index),
 		ec.client.Search.WithBody(bytes.NewBuffer(body)),
