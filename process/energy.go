@@ -54,12 +54,12 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 		if !ok {
 			continue
 		}
-		energy, ok := ag.extractEnergyFromValue(value)
+		energyDetails, ok := ag.extractEnergyFromValue(value)
 		if !ok {
 			continue
 		}
 
-		energyValue := calculateEnergyValueBasedOnCurrentEpoch(energy, currentEpoch)
+		energyValue := calculateEnergyValueBasedOnCurrentEpoch(energyDetails, currentEpoch)
 
 		// ignore addresses with energyValue less or equal to zero
 		zero := big.NewInt(0)
@@ -69,8 +69,9 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 
 		accountsWithEnergy[address] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
-				Energy:    energyValue.String(),
-				EnergyNum: core.ComputeBalanceAsFloat(energyValue.String()),
+				Energy:        energyValue.String(),
+				EnergyNum:     core.ComputeBalanceAsFloat(energyValue.String()),
+				EnergyDetails: energyDetails,
 			},
 		}
 	}
@@ -94,18 +95,12 @@ func (ag *accountsGetter) extractAddressFromKey(key string) (string, bool) {
 	return ag.pubKeyConverter.Encode(addressBytes), true
 }
 
-type energyStruct struct {
-	LastUpdateEpoch   uint32
-	Amount            *big.Int
-	TotalLockedTokens *big.Int
-}
-
 const (
 	numBytesForBigValueLength = 4
 	numBytesForU64Value       = 8
 )
 
-func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruct, bool) {
+func (ag *accountsGetter) extractEnergyFromValue(value string) (*data.EnergyDetails, bool) {
 	decodedBytes, err := hex.DecodeString(value)
 	if err != nil {
 		log.Warn("cannot decode energy structure bytes", "error", err)
@@ -144,26 +139,35 @@ func (ag *accountsGetter) extractEnergyFromValue(value string) (*energyStruct, b
 
 	amount := big.NewInt(0).SetBytes(amountValueInBytes)
 	totalLockedTokens := big.NewInt(0).SetBytes(lockTokenValueInBytes)
-	energy := &energyStruct{
-		Amount:            amount,
+	energy := &data.EnergyDetails{
+		Amount:            amount.String(),
 		LastUpdateEpoch:   uint32(lastUpdateEpochUint64),
-		TotalLockedTokens: totalLockedTokens,
+		TotalLockedTokens: totalLockedTokens.String(),
 	}
 
 	return energy, true
 }
 
-func calculateEnergyValueBasedOnCurrentEpoch(energy *energyStruct, currentEpoch uint32) *big.Int {
+func calculateEnergyValueBasedOnCurrentEpoch(energy *data.EnergyDetails, currentEpoch uint32) *big.Int {
 	coefficient := currentEpoch - energy.LastUpdateEpoch
-	valueToSubtract := big.NewInt(0).Mul(big.NewInt(int64(coefficient)), energy.TotalLockedTokens)
-	energyValue := big.NewInt(0).Sub(energy.Amount, valueToSubtract)
+	totalLockedTokens, ok := big.NewInt(0).SetString(energy.TotalLockedTokens, 10)
+	if !ok {
+		totalLockedTokens = big.NewInt(0)
+	}
+	amount, ok := big.NewInt(0).SetString(energy.Amount, 10)
+	if !ok {
+		amount = big.NewInt(0)
+	}
+
+	valueToSubtract := big.NewInt(0).Mul(big.NewInt(int64(coefficient)), totalLockedTokens)
+	energyValue := big.NewInt(0).Sub(amount, valueToSubtract)
 
 	log.Trace(
 		"calculateEnergyValueBasedOnCurrentEpoch",
 		"current epoch", currentEpoch,
 		"last update epoch", energy.LastUpdateEpoch,
-		"amount", core.ComputeBalanceAsFloat(energy.Amount.String()),
-		"total locked tokens", core.ComputeBalanceAsFloat(energy.TotalLockedTokens.String()),
+		"amount", core.ComputeBalanceAsFloat(energy.Amount),
+		"total locked tokens", core.ComputeBalanceAsFloat(energy.TotalLockedTokens),
 		"energy", core.ComputeBalanceAsFloat(energyValue.String()))
 
 	return energyValue

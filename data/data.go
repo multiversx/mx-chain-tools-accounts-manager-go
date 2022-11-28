@@ -103,10 +103,18 @@ type StakeInfo struct {
 	TotalStake                 string  `json:"totalStake,omitempty"`
 	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
 
-	LKMEXStake    string  `json:"lkMexStake,omitempty"`
-	LKMEXStakeNum float64 `json:"lkMexStakeNum,omitempty"`
-	Energy        string  `json:"energy"`
-	EnergyNum     float64 `json:"energyNum"`
+	LKMEXStake    string         `json:"lkMexStake,omitempty"`
+	LKMEXStakeNum float64        `json:"lkMexStakeNum,omitempty"`
+	Energy        string         `json:"energy,omitempty"`
+	EnergyNum     float64        `json:"energyNum,omitempty"`
+	EnergyDetails *EnergyDetails `json:"energyDetails,omitempty"`
+}
+
+// EnergyDetails is the structure that contains details about the user's energy
+type EnergyDetails struct {
+	LastUpdateEpoch   uint32 `json:"lastUpdateEpoch"`
+	Amount            string `json:"amount"`
+	TotalLockedTokens string `json:"totalLockedTokens"`
 }
 
 // EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct

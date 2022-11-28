@@ -139,6 +139,7 @@ func (ap *accountsProcessor) mergeAccounts(
 
 		mergedAccounts[address].Energy = energyAccount.Energy
 		mergedAccounts[address].EnergyNum = energyAccount.EnergyNum
+		mergedAccounts[address].EnergyDetails = energyAccount.EnergyDetails
 	}
 
 	return mergedAccounts, allAddresses
