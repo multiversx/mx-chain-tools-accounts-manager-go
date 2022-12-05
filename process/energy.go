@@ -76,6 +76,8 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 		}
 	}
 
+	log.Info("accounts with energy", "num", len(accountsWithEnergy))
+
 	return accountsWithEnergy, nil
 }
 

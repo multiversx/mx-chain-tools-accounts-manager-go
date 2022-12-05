@@ -106,6 +106,8 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		accountsMap[key].DelegationLegacyWaitingNum = valueWaitingNum
 	}
 
+	log.Info("legacy delegators accounts", "num", len(accountsMap))
+
 	return accountsMap, nil
 }
 
@@ -185,6 +187,8 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 		}
 	}
 
+	log.Info("validators accounts", "num", len(accountsStake))
+
 	return accountsStake, nil
 }
 
@@ -219,6 +223,8 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 			},
 		}
 	}
+
+	log.Info("delegators accounts", "num", len(accountsStake))
 
 	return accountsStake, nil
 }
@@ -270,6 +276,8 @@ func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoW
 			},
 		}
 	}
+
+	log.Info("staked lkmex accounts", "num", len(accountsStake))
 
 	return accountsMap, nil
 }
