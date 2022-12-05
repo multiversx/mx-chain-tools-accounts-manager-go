@@ -88,7 +88,14 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	return dataProc.ProcessAccountsData()
+	err = dataProc.ProcessAccountsData()
+	if err != nil {
+		return err
+	}
+
+	log.Info("Done.")
+
+	return nil
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {

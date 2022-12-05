@@ -32,7 +32,7 @@ func (dp *reindexerDataProcessor) ProcessAccountsData() error {
 		return err
 	}
 
-	accountsRest, _, err := dp.accountsProcessor.GetAllAccountsWithStake(epoch)
+	accountsRest, err := dp.accountsProcessor.GetAllAccountsWithStake(epoch)
 	if err != nil {
 		return err
 	}

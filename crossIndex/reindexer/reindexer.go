@@ -49,10 +49,10 @@ func New(
 }
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer
-func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error {
+func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts *data.AccountsData) error {
 	log.Info("Create a new index with mapping")
 
-	template, policy, err := readTemplateAndPolicy(r.pathToIndicesConfig)
+	template, policy, err := readTemplateAndPolicyForAccountsIndex(r.pathToIndicesConfig)
 	if err != nil {
 		return err
 	}
@@ -81,12 +81,22 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 			return errG
 		}
 
-		mergedAccounts := core.MergeElasticAndRestAccounts(esAccounts, restAccounts)
+		mergedAccounts := core.MergeElasticAndRestAccounts(esAccounts, restAccounts.AccountsWithStake)
 
 		return r.indexAllAccounts(mergedAccounts, destinationIndex)
 	}
 
-	return r.sourceIndexer.DoScrollRequestAllDocuments(sourceIndex, crossIndex.GetAll().Bytes(), saverFunc)
+	err = r.sourceIndexer.DoScrollRequestAllDocuments(sourceIndex, crossIndex.GetAll().Bytes(), saverFunc)
+	if err != nil {
+		return err
+	}
+
+	err = r.checkAndCreateValuesIndex()
+	if err != nil {
+		return err
+	}
+
+	return r.indexExtraInformation(restAccounts)
 }
 
 func (r *reindexer) indexAllAccounts(mapAllAccounts map[string]*data.AccountInfoWithStakeValues, destinationIndex string) error {
@@ -101,6 +111,56 @@ func (r *reindexer) indexAllAccounts(mapAllAccounts map[string]*data.AccountInfo
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *reindexer) indexExtraInformation(accountsData *data.AccountsData) error {
+	for _, dstClient := range r.destinationClients {
+		err := indexEnergyBlockInfo(accountsData.EnergyBlockInfo, accountsData.Epoch, dstClient)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func indexEnergyBlockInfo(energyBlockInfo *data.BlockInfo, epoch uint32, esClient crossIndex.ElasticClientHandler) error {
+	log.Info(fmt.Sprintf("Indexing extra information in `%s` index...", valuesIndex))
+
+	id := fmt.Sprintf("energy-snapshot-%d", epoch)
+	keyValueObj := &data.KeyValueObj{
+		Key:   "blockHash",
+		Value: energyBlockInfo.Hash,
+	}
+
+	keyValueObjBytes, err := json.Marshal(keyValueObj)
+	if err != nil {
+		return err
+	}
+
+	return esClient.DoRequest(valuesIndex, id, bytes.NewBuffer(keyValueObjBytes))
+}
+
+func (r *reindexer) checkAndCreateValuesIndex() error {
+	template, err := readTemplateForIndex(r.pathToIndicesConfig, valuesIndex)
+	templateBytes := template.Bytes()
+
+	for _, dstClient := range r.destinationClients {
+		exists, errC := dstClient.CheckIfIndexExists(valuesIndex)
+		if errC != nil {
+			return errC
+		}
+		if exists {
+			continue
+		}
+
+		err = dstClient.CreateIndexWithMapping(valuesIndex, bytes.NewBuffer(templateBytes))
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

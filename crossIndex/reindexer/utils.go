@@ -10,9 +10,10 @@ import (
 const (
 	accountsTemplateFileName = "accounts.json"
 	accountsPolicyFileName   = "accounts-policy.json"
+	valuesIndex              = "values"
 )
 
-func readTemplateAndPolicy(pathToIndicesConfig string) (*bytes.Buffer, *bytes.Buffer, error) {
+func readTemplateAndPolicyForAccountsIndex(pathToIndicesConfig string) (*bytes.Buffer, *bytes.Buffer, error) {
 	pathTemplate := path.Join(pathToIndicesConfig, accountsTemplateFileName)
 	template, err := readFile(pathTemplate)
 	if err != nil {
@@ -26,6 +27,11 @@ func readTemplateAndPolicy(pathToIndicesConfig string) (*bytes.Buffer, *bytes.Bu
 	}
 
 	return template, policy, nil
+}
+
+func readTemplateForIndex(pathToIndicesConfig string, index string) (*bytes.Buffer, error) {
+	templatePath := path.Join(pathToIndicesConfig, index) + ".json"
+	return readFile(templatePath)
 }
 
 func readFile(path string) (*bytes.Buffer, error) {

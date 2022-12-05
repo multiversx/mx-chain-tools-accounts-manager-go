@@ -11,16 +11,12 @@ type ElasticClientHandler interface {
 	PutPolicy(policyName string, policy *bytes.Buffer) error
 	PutMapping(targetIndex string, body *bytes.Buffer) error
 	CreateIndexWithMapping(index string, mapping *bytes.Buffer) error
+	CheckIfIndexExists(index string) (bool, error)
+	DoRequest(index, documentID string, buff *bytes.Buffer) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoMultiGet(ids []string, index string) ([]byte, error)
 	DoScrollRequestAllDocuments(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
 	IsInterfaceNil() bool
-}
-
-// RestClientHandler defines what a rest client should be able to do
-type RestClientHandler interface {
-	CallGetRestEndPoint(path string, value interface{}) error
-	CallPostRestEndPoint(path string, data interface{}, response interface{}) error
 }
 
 // AccountsIndexerHandler defines what an accounts' indexer should be able to do

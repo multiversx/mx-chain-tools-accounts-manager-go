@@ -31,7 +31,7 @@ type AccountsIndexerHandler interface {
 // AccountsProcessorHandler defines what an accounts processor should be able to do
 type AccountsProcessorHandler interface {
 	GetCurrentEpoch() (uint32, error)
-	GetAllAccountsWithStake(uint32) (map[string]*data.AccountInfoWithStakeValues, []string, error)
+	GetAllAccountsWithStake(uint32) (*data.AccountsData, error)
 	ComputeClonedAccountsIndex(uint32) (string, error)
 	IsInterfaceNil() bool
 }
@@ -42,7 +42,7 @@ type AccountsGetterHandler interface {
 	GetValidatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
-	GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error)
+	GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error)
 }
 
 // Cloner defines what a clone should be able to do
@@ -53,7 +53,7 @@ type Cloner interface {
 
 // Reindexer defines what a reindexer should be able to do
 type Reindexer interface {
-	ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts map[string]*data.AccountInfoWithStakeValues) error
+	ReindexAccounts(sourceIndex string, destinationIndex string, accountsData *data.AccountsData) error
 	IsInterfaceNil() bool
 }
 

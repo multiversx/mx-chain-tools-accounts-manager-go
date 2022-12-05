@@ -13,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/tidwall/gjson"
 )
 
@@ -75,6 +76,64 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	}
 
 	return nil
+}
+
+// DoRequest will do a index request to Elasticsearch
+func (ec *esClient) DoRequest(index, documentID string, buff *bytes.Buffer) error {
+	req := &esapi.IndexRequest{
+		Index:      index,
+		DocumentID: documentID,
+		Body:       buff,
+	}
+
+	res, err := req.Do(context.Background(), ec.client)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("error DoRequest: %s", res.String())
+	}
+
+	defer closeBody(res)
+
+	return nil
+}
+
+// CheckIfIndexExists will check if an index exists
+func (ec *esClient) CheckIfIndexExists(index string) (bool, error) {
+	res, err := ec.client.Indices.Exists(
+		[]string{index},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	return exists(res), nil
+}
+
+func exists(res *esapi.Response) bool {
+	defer func() {
+		if res != nil && res.Body != nil {
+			err := res.Body.Close()
+			if err != nil {
+				log.Warn("elasticClient.exists", "could not close body: ", err.Error())
+			}
+		}
+	}()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		return true
+	case http.StatusNotFound:
+		return false
+	default:
+		log.Warn("elasticClient.exists", "invalid status code returned by the elastic nodes:", res.StatusCode)
+		return false
+	}
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server

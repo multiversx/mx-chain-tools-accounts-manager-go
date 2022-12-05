@@ -14,6 +14,13 @@ type GenericAPIResponse struct {
 	Code  string          `json:"code"`
 }
 
+// BlockInfo defines the structure of block info
+type BlockInfo struct {
+	Hash     string `json:"hash"`
+	Nonce    uint64 `json:"nonce"`
+	RootHash string `json:"rootHash"`
+}
+
 // StakedInfo defines the structure of a response staked info response
 type StakedInfo struct {
 	Address string `json:"address"`
@@ -88,6 +95,13 @@ type AccountInfoWithStakeValues struct {
 	StakeInfo
 }
 
+type AccountsData struct {
+	AccountsWithStake map[string]*AccountInfoWithStakeValues
+	Addresses         []string
+	EnergyBlockInfo   *BlockInfo
+	Epoch             uint32
+}
+
 // StakeInfo is the structure that contains all information about stake for an account
 type StakeInfo struct {
 	DelegationLegacyWaiting    string  `json:"delegationLegacyWaiting,omitempty"`
@@ -115,6 +129,12 @@ type EnergyDetails struct {
 	LastUpdateEpoch   uint32 `json:"lastUpdateEpoch"`
 	Amount            string `json:"amount"`
 	TotalLockedTokens string `json:"totalLockedTokens"`
+}
+
+// KeyValueObj is the dto for values index
+type KeyValueObj struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct

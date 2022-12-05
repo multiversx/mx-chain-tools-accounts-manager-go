@@ -19,9 +19,9 @@ const (
 )
 
 // GetAccountsWithEnergy will return accounts with energy
-func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
+func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error) {
 	if ag.energyContractAddress == "" {
-		return map[string]*data.AccountInfoWithStakeValues{}, nil
+		return map[string]*data.AccountInfoWithStakeValues{}, nil, nil
 	}
 
 	defer logExecutionTime(time.Now(), "Fetched accounts from energy contract")
@@ -30,13 +30,23 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 	path := fmt.Sprintf(pathAccountKeys, ag.energyContractAddress)
 	err := ag.restClient.CallGetRestEndPoint(path, genericAPIResponse, core.GetEmptyApiCredentials())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if genericAPIResponse.Error != "" {
-		return nil, fmt.Errorf("get accounts with energy %s", genericAPIResponse.Error)
+		return nil, nil, fmt.Errorf("cannot get accounts with energy %s", genericAPIResponse.Error)
 	}
 
-	return ag.extractAddressesAndEnergy(genericAPIResponse.Data, currentEpoch)
+	accountsWithEnergy, err := ag.extractAddressesAndEnergy(genericAPIResponse.Data, currentEpoch)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot extract accounts with energy %s", err.Error())
+	}
+
+	blockInfo, err := extractBlockInfo(genericAPIResponse.Data)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot extract block info %s", err.Error())
+	}
+
+	return accountsWithEnergy, blockInfo, nil
 }
 
 func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
@@ -173,4 +183,16 @@ func calculateEnergyValueBasedOnCurrentEpoch(energy *data.EnergyDetails, current
 		"energy", core.ComputeBalanceAsFloat(energyValue.String()))
 
 	return energyValue
+}
+
+func extractBlockInfo(responseWithBlockInfo []byte) (*data.BlockInfo, error) {
+	blockInfoData := gjson.Get(string(responseWithBlockInfo), "blockInfo")
+
+	blockInfo := &data.BlockInfo{}
+	err := json.Unmarshal([]byte(blockInfoData.String()), &blockInfo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal account storage, error: %s", err.Error())
+	}
+
+	return blockInfo, nil
 }

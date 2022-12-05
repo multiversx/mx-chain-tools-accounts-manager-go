@@ -27,37 +27,42 @@ func NewAccountsProcessor(restClient RestClientHandler, acctsGetter AccountsGett
 }
 
 // GetAllAccountsWithStake will return all accounts with stake
-func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, []string, error) {
+func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data.AccountsData, error) {
 	legacyDelegators, err := ap.GetLegacyDelegatorsAccounts()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	validators, err := ap.GetValidatorsAccounts()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	delegators, err := ap.GetDelegatorsAccounts()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	accountsWithEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
+	accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
 
 	calculateTotalStakeForAccounts(allAccounts)
 
-	return allAccounts, allAddresses, nil
+	return &data.AccountsData{
+		AccountsWithStake: allAccounts,
+		Addresses:         allAddresses,
+		EnergyBlockInfo:   blockInfoEnergy,
+		Epoch:             currentEpoch,
+	}, nil
 }
 
 func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithStakeValues) {
