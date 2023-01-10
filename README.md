@@ -1,9 +1,9 @@
-# elrond-accounts-manager-go
+# mx-chain-tools-accounts-manager-go
 
-The go implementation for the elrond-accounts-manager
+The go implementation for the multiversx-accounts-manager
 
-- This application will be responsible to fetch all elrond-accounts that have staked an amount of EGLD tokens. 
-Alter the accounts are fetched from API will process all the information and will index the new data 
+- This application will be responsible to fetch all multiversx-accounts that have staked an amount of EGLD tokens. 
+After the accounts are fetched from API it will process all the information and it will index the new data 
 in a new Elaticsearch index.
 
 - The new Elastisearch index will contain all the accounts that have balance and also information 
@@ -30,7 +30,7 @@ version should be 1.12.4.
 #### Step 2: clone the repository and build the binary:
 
 ```
- $ git clone https://github.com/ElrondNetwork/accounts-manager-go.git
+ $ git clone https://github.com/multiversx/mx-chain-tools-accounts-manager-go.git
  $ cd accounts-manager-go/cmd/manager
  $ GO111MODULE=on go mod vendor
  $ go build
