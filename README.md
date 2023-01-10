@@ -3,7 +3,7 @@
 The go implementation for the multiversx-accounts-manager
 
 - This application will be responsible to fetch all multiversx-accounts that have staked an amount of EGLD tokens. 
-After the accounts are fetched from API will process all the information and will index the new data 
+After the accounts are fetched from API it will process all the information and it will index the new data 
 in a new Elaticsearch index.
 
 - The new Elastisearch index will contain all the accounts that have balance and also information 
