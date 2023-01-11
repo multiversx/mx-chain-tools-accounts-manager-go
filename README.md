@@ -1,6 +1,6 @@
 # mx-chain-tools-accounts-manager-go
 
-The go implementation for the multiversx-accounts-manager
+The go implementation for the mx-chain-tools-accounts-manager-go
 
 - This application will be responsible to fetch all multiversx-accounts that have staked an amount of EGLD tokens. 
 After the accounts are fetched from API it will process all the information and it will index the new data 
