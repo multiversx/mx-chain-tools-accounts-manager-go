@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/stretchr/testify/require"
 )
 

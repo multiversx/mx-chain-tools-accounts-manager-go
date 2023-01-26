@@ -3,7 +3,7 @@ package crossIndex
 import (
 	"bytes"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // ElasticClientHandler defines what an elastic client should be able to do

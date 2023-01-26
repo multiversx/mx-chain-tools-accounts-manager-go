@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/config"
-	"github.com/ElrondNetwork/elrond-accounts-manager/core"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	nodeCore "github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-vm-common"
+	nodeCore "github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
+	"github.com/multiversx/mx-chain-vm-common-go"
 	"github.com/tidwall/gjson"
 )
 

@@ -1,6 +1,6 @@
 package process
 
-import "github.com/ElrondNetwork/elrond-go-core/core/check"
+import "github.com/multiversx/mx-chain-core-go/core/check"
 
 type reindexerDataProcessor struct {
 	accountsProcessor AccountsProcessorHandler

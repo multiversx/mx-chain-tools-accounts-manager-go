@@ -3,7 +3,7 @@ package core
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // MergeElasticAndRestAccounts will merge additional data from the rest into the existing data from elastic search

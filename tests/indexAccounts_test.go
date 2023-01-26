@@ -5,11 +5,11 @@ import (
 	"math/rand"
 	"testing"
 
-	dataIndexer "github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
-	"github.com/ElrondNetwork/elrond-accounts-manager/process"
-	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
+	dataIndexer "github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/elasticClient"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/process"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/process/accountsIndexer"
 	"github.com/stretchr/testify/require"
 )
 

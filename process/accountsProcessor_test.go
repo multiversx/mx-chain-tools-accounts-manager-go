@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/core"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-accounts-manager/mocks"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/mocks"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // Config will hold the whole config file's data

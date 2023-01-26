@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/core"
-	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	"github.com/ElrondNetwork/elrond-accounts-manager/process/accountsIndexer"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/process/accountsIndexer"
 )
 
 type reindexer struct {

@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/config"
-	"github.com/ElrondNetwork/elrond-accounts-manager/process"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/process"
 	"github.com/urfave/cli"
 )
 
@@ -44,9 +44,9 @@ var (
 func main() {
 	app := cli.NewApp()
 
-	app.Name = "Elrond Accounts Manager"
+	app.Name = "Accounts Manager"
 	app.Version = "v1.0.0"
-	app.Usage = "This is the entry point for starting a new Elrond accounts manager"
+	app.Usage = "This is the entry point for starting a new accounts manager"
 	app.Flags = []cli.Flag{
 		configurationFile,
 		logLevel,
@@ -55,8 +55,8 @@ func main() {
 	}
 	app.Authors = []cli.Author{
 		{
-			Name:  "The Elrond Team",
-			Email: "contact@elrond.com",
+			Name:  "The MultiversX Team",
+			Email: "contact@multiversx.com",
 		},
 	}
 
@@ -75,7 +75,7 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	log.Info("Starting elrond-accounts-manager...")
+	log.Info("Starting accounts-manager...")
 
 	configurationFileName := ctx.GlobalString(configurationFile.Name)
 	generalConfig, err := loadMainConfig(configurationFileName)

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	dataIndexer "github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	dataIndexer "github.com/multiversx/mx-chain-es-indexer-go/data"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/tidwall/gjson"
 )
 
