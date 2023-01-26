@@ -17,18 +17,6 @@ func encode(obj objectsMap) (*bytes.Buffer, error) {
 	return buff, nil
 }
 
-func settingsWriteEncoded(state bool) *bytes.Buffer {
-	obj := objectsMap{
-		"settings": objectsMap{
-			"index.blocks.write": state,
-		},
-	}
-
-	encodedObj, _ := encode(obj)
-
-	return encodedObj
-}
-
 func getDocumentsByIDsQueryEncoded(ids []string) *bytes.Buffer {
 	interfaceSlice := make([]interface{}, len(ids))
 	for idx := range ids {

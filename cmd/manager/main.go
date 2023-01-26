@@ -5,8 +5,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-accounts-manager/config"
 	"github.com/ElrondNetwork/elrond-accounts-manager/process"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/urfave/cli"
 )
 
@@ -39,11 +39,6 @@ var (
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
 	}
-	typeFlag = cli.StringFlag{
-		Name:  "type",
-		Usage: "This string flag specifies the approach to use for reindexing: clone or reindex (default: reindex)",
-		Value: "reindex",
-	}
 )
 
 func main() {
@@ -56,7 +51,6 @@ func main() {
 		configurationFile,
 		logLevel,
 		logSaveFile,
-		typeFlag,
 		indicesConfigPath,
 	}
 	app.Authors = []cli.Author{
@@ -89,12 +83,19 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	dataProc, err := process.CreateDataProcessor(generalConfig, ctx.GlobalString(typeFlag.Name), ctx.GlobalString(indicesConfigPath.Name))
+	dataProc, err := process.CreateDataProcessor(generalConfig, ctx.GlobalString(indicesConfigPath.Name))
 	if err != nil {
 		return err
 	}
 
-	return dataProc.ProcessAccountsData()
+	err = dataProc.ProcessAccountsData()
+	if err != nil {
+		return err
+	}
+
+	log.Info("Done.")
+
+	return nil
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 )
 
 // GenericAPIResponse defines the structure of all responses on API endpoints
@@ -12,6 +12,13 @@ type GenericAPIResponse struct {
 	Data  json.RawMessage `json:"data"`
 	Error string          `json:"error"`
 	Code  string          `json:"code"`
+}
+
+// BlockInfo defines the structure of block info
+type BlockInfo struct {
+	Hash     string `json:"hash"`
+	Nonce    uint64 `json:"nonce"`
+	RootHash string `json:"rootHash"`
 }
 
 // StakedInfo defines the structure of a response staked info response
@@ -88,6 +95,13 @@ type AccountInfoWithStakeValues struct {
 	StakeInfo
 }
 
+type AccountsData struct {
+	AccountsWithStake map[string]*AccountInfoWithStakeValues
+	Addresses         []string
+	EnergyBlockInfo   *BlockInfo
+	Epoch             uint32
+}
+
 // StakeInfo is the structure that contains all information about stake for an account
 type StakeInfo struct {
 	DelegationLegacyWaiting    string  `json:"delegationLegacyWaiting,omitempty"`
@@ -102,11 +116,25 @@ type StakeInfo struct {
 	DelegationNum              float64 `json:"delegationNum,omitempty"`
 	TotalStake                 string  `json:"totalStake,omitempty"`
 	TotalStakeNum              float64 `json:"totalStakeNum,omitempty"`
-	TotalBalanceWithStake      string  `json:"totalBalanceWithStake,omitempty"`
-	TotalBalanceWithStakeNum   float64 `json:"totalBalanceWithStakeNum,omitempty"`
 
-	LKMEXStake    string  `json:"lkMexStake,omitempty"`
-	LKMEXStakeNum float64 `json:"lkMexStakeNum,omitempty"`
+	LKMEXStake    string         `json:"lkMexStake,omitempty"`
+	LKMEXStakeNum float64        `json:"lkMexStakeNum,omitempty"`
+	Energy        string         `json:"energy,omitempty"`
+	EnergyNum     float64        `json:"energyNum,omitempty"`
+	EnergyDetails *EnergyDetails `json:"energyDetails,omitempty"`
+}
+
+// EnergyDetails is the structure that contains details about the user's energy
+type EnergyDetails struct {
+	LastUpdateEpoch   uint32 `json:"lastUpdateEpoch"`
+	Amount            string `json:"amount"`
+	TotalLockedTokens string `json:"totalLockedTokens"`
+}
+
+// KeyValueObj is the dto for values index
+type KeyValueObj struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // EsClientConfig is a wrapper over the internally used field from elasticsearch.Config struct

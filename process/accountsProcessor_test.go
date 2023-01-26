@@ -40,11 +40,11 @@ func TestAccountsProcessor_GetAllAccountsWithStake(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	allAccounts, allAddresses, err := ap.GetAllAccountsWithStake()
+	accountsData, err := ap.GetAllAccountsWithStake(0)
 	require.Nil(t, err)
-	require.Equal(t, len(allAccounts), len(allAddresses))
+	require.Equal(t, len(accountsData.AccountsWithStake), len(accountsData.Addresses))
 
-	for addr, processedAccount := range allAccounts {
+	for addr, processedAccount := range accountsData.AccountsWithStake {
 		acctDelegation, ok := mapDelegation[addr]
 		if !ok {
 			acctDelegation = &data.AccountInfoWithStakeValues{}

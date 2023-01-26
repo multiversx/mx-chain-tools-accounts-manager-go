@@ -1,6 +1,6 @@
 package process
 
-import "github.com/ElrondNetwork/elrond-go-logger/check"
+import "github.com/ElrondNetwork/elrond-go-core/core/check"
 
 type reindexerDataProcessor struct {
 	accountsProcessor AccountsProcessorHandler
@@ -27,12 +27,17 @@ func NewReindexerDataProcessor(
 
 // ProcessAccountsData will process accounts data
 func (dp *reindexerDataProcessor) ProcessAccountsData() error {
-	accountsRest, _, err := dp.accountsProcessor.GetAllAccountsWithStake()
+	epoch, err := dp.accountsProcessor.GetCurrentEpoch()
 	if err != nil {
 		return err
 	}
 
-	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex()
+	accountsRest, err := dp.accountsProcessor.GetAllAccountsWithStake(epoch)
+	if err != nil {
+		return err
+	}
+
+	newIndex, err := dp.accountsProcessor.ComputeClonedAccountsIndex(epoch)
 	if err != nil {
 		return err
 	}

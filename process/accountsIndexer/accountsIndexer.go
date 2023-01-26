@@ -98,7 +98,7 @@ func (ai *accountsIndexer) IndexAccounts(accounts map[string]*data.AccountInfoWi
 }
 
 func serializeAccounts(accounts map[string]*data.AccountInfoWithStakeValues) ([]*bytes.Buffer, error) {
-	buffSlice := dataIndexer.NewBufferSlice()
+	buffSlice := dataIndexer.NewBufferSlice(0)
 	for address, acc := range accounts {
 		meta, serializedData, err := prepareSerializedAccountInfo(address, acc)
 		if err != nil {
