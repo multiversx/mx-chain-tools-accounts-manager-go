@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/json"
 	"math/big"
+	"time"
 
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
@@ -48,6 +49,7 @@ func newUnDelegateInfoProcessor(esClient ElasticClientHandler) *unDelegatedInfoP
 }
 
 func (up *unDelegatedInfoProcessor) putUnDelegateInfoFromStakingProviders(accountsWithStake map[string]*data.AccountInfoWithStakeValues) error {
+	defer logExecutionTime(time.Now(), "Fetched undelegated values from staking provider contracts")
 	handlerFunc := func(responseBytes []byte) error {
 		delegatorsResp := &delegatorsResponse{}
 		err := json.Unmarshal(responseBytes, delegatorsResp)
