@@ -38,29 +38,29 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 		return nil, err
 	}
 
-	//delegators, err := ap.GetDelegatorsAccounts()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, nil, nil, nil)
+	delegators, err := ap.GetDelegatorsAccounts()
+	if err != nil {
+		return nil, err
+	}
+
+	lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
+	if err != nil {
+		return nil, err
+	}
+
+	accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
+	if err != nil {
+		return nil, err
+	}
+
+	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
 
 	calculateTotalStakeForAccountsAndTotalUnDelegated(allAccounts)
 
 	return &data.AccountsData{
 		AccountsWithStake: allAccounts,
 		Addresses:         allAddresses,
-		EnergyBlockInfo:   nil,
+		EnergyBlockInfo:   blockInfoEnergy,
 		Epoch:             currentEpoch,
 	}, nil
 }
