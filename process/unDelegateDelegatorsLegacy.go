@@ -118,6 +118,5 @@ func (ag *accountsGetter) getUnDelegatedValueForAddressDelegationLegacyContract(
 		return big.NewInt(0), nil
 	}
 
-	fmt.Println("address", address, "value", value.String(), "value num", core.ComputeBalanceAsFloat(value.String()))
 	return value, nil
 }
