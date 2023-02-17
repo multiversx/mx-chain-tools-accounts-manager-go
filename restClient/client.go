@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/core"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 var log = logger.GetOrCreate("restClient")

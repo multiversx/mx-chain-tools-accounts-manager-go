@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 type AccountsGetterStub struct {

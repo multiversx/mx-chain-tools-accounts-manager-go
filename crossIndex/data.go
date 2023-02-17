@@ -1,7 +1,7 @@
 package crossIndex
 
 import (
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // AccountsPolicyName is the name of the policy for the accounts index

@@ -3,14 +3,14 @@ package process
 import (
 	"errors"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/config"
-	"github.com/ElrondNetwork/elrond-accounts-manager/core"
-	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex"
-	"github.com/ElrondNetwork/elrond-accounts-manager/crossIndex/reindexer"
-	"github.com/ElrondNetwork/elrond-accounts-manager/elasticClient"
-	"github.com/ElrondNetwork/elrond-accounts-manager/restClient"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex/reindexer"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/elasticClient"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/restClient"
 )
 
 var log = logger.GetOrCreate("process")

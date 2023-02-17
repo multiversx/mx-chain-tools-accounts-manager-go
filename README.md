@@ -3,11 +3,11 @@
 The go implementation for the mx-chain-tools-accounts-manager-go
 
 - This application will be responsible to fetch all multiversx-accounts that have staked an amount of EGLD tokens. 
-After the accounts are fetched from API it will process all the information and it will index the new data 
+After the accounts are fetched from API it will process all the information, and it will index the new data 
 in a new Elaticsearch index.
 
 - The new Elastisearch index will contain all the accounts that have balance and also information 
-about the staked balance.
+about the staked balance and energy.
 
 ### Sources of accounts with stake
 
@@ -15,6 +15,7 @@ about the staked balance.
     1. Validators system smart contract
     2. Delegation manager system smart contracts
     3. Legacy delegation smart contract
+    4. Energy smart contract
     
 
 ### Installation and running

@@ -3,8 +3,8 @@ package data
 import (
 	"encoding/json"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // GenericAPIResponse defines the structure of all responses on API endpoints

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // Response is a structure that holds response from Kibana

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/ElrondNetwork/elrond-accounts-manager/config"
-	"github.com/ElrondNetwork/elrond-accounts-manager/data"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
 
 // ShouldUseBasicAuthentication returns true if the credentials aren't empty
