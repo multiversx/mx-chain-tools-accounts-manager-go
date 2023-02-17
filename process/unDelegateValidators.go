@@ -18,6 +18,10 @@ const (
 )
 
 func (ag *accountsGetter) putUndelegatedValuesFromValidatorsContract(accountsWithStake map[string]*data.AccountInfoWithStakeValues) error {
+	if ag.validatorsContract == "" {
+		return nil
+	}
+
 	unDelegatedValues, err := ag.getUnDelegatedValuesFromValidatorsContract(accountsWithStake)
 	if err != nil {
 		return err

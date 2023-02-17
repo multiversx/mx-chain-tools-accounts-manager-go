@@ -62,6 +62,10 @@ func NewAccountsGetter(
 // GetLegacyDelegatorsAccounts will fetch all accounts with stake from API
 func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
+	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
+	if ag.delegationContractAddress == "" {
+		return accountsMap, nil
+	}
 
 	activeListAccounts, err := ag.getFullActiveListAccounts()
 	if err != nil {
@@ -73,7 +77,6 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		return nil, err
 	}
 
-	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
 	for _, legacyStakeInfo := range activeListAccounts {
 		key, value := legacyStakeInfo.Address, legacyStakeInfo.Staked
 		_, found := accountsMap[key]
