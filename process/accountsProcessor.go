@@ -38,34 +38,34 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 		return nil, err
 	}
 
-	delegators, err := ap.GetDelegatorsAccounts()
-	if err != nil {
-		return nil, err
-	}
+	//delegators, err := ap.GetDelegatorsAccounts()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, nil, nil, nil)
 
-	lkMexAccountsWithStake, err := ap.GetLKMEXStakeAccounts()
-	if err != nil {
-		return nil, err
-	}
-
-	accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
-	if err != nil {
-		return nil, err
-	}
-
-	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
-
-	calculateTotalStakeForAccounts(allAccounts)
+	calculateTotalStakeForAccountsAndTotalUnDelegated(allAccounts)
 
 	return &data.AccountsData{
 		AccountsWithStake: allAccounts,
 		Addresses:         allAddresses,
-		EnergyBlockInfo:   blockInfoEnergy,
+		EnergyBlockInfo:   nil,
 		Epoch:             currentEpoch,
 	}, nil
 }
 
-func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithStakeValues) {
+func calculateTotalStakeForAccountsAndTotalUnDelegated(accounts map[string]*data.AccountInfoWithStakeValues) {
 	for _, account := range accounts {
 		totalStake, totalStakeNum := computeTotalBalance(
 			account.DelegationLegacyWaiting,
@@ -77,6 +77,15 @@ func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithSta
 
 		account.TotalStake = totalStake
 		account.TotalStakeNum = totalStakeNum
+
+		totalUnDelegated, totalUnDelegatedNum := computeTotalBalance(
+			account.UnDelegateLegacy,
+			account.UnDelegateValidator,
+			account.UnDelegateDelegation,
+		)
+
+		account.TotalUnDelegate = totalUnDelegated
+		account.TotalUnDelegateNum = totalUnDelegatedNum
 	}
 }
 
@@ -105,6 +114,9 @@ func (ap *accountsProcessor) mergeAccounts(
 		mergedAccounts[address].ValidatorsActiveNum = stakedValidators.ValidatorsActiveNum
 		mergedAccounts[address].ValidatorTopUp = stakedValidators.ValidatorTopUp
 		mergedAccounts[address].ValidatorTopUpNum = stakedValidators.ValidatorTopUpNum
+
+		mergedAccounts[address].UnDelegateValidator = stakedValidators.UnDelegateValidator
+		mergedAccounts[address].UnDelegateValidatorNum = stakedValidators.UnDelegateValidatorNum
 	}
 
 	for address, stakedDelegators := range delegators {
@@ -118,6 +130,9 @@ func (ap *accountsProcessor) mergeAccounts(
 
 		mergedAccounts[address].Delegation = stakedDelegators.Delegation
 		mergedAccounts[address].DelegationNum = stakedDelegators.DelegationNum
+
+		mergedAccounts[address].UnDelegateDelegation = stakedDelegators.UnDelegateDelegation
+		mergedAccounts[address].UnDelegateDelegationNum = stakedDelegators.UnDelegateDelegationNum
 	}
 
 	for address, lkMexAccount := range lkMexAccountsWithStake {

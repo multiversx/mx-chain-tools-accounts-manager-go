@@ -2,6 +2,7 @@
     DelegationLegacyContractAddress = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
     LKMEXStakingContractAddress     = "erd1qqqqqqqqqqqqqpgqt7tyyswqvplpcqnhwe20xqrj7q7ap27d2jps7zczse"
     EnergyContractAddress           = "erd1qqqqqqqqqqqqqpgqnyuph46rqr29qv5gqhyxh429zcta8r0ppr9s048rjw"
+    ValidatorsContract              = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
 
 
 [AddressPubkeyConverter]
@@ -22,6 +23,6 @@
                                        { Address = "http://127.0.0.1:9211", Username = "", Password = ""}]
 
 [APIConfig]
-    URL = "http://127.0.0.1:7950"
+    URL = ""
     Username = ""
     Password = ""
