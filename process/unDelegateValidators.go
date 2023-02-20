@@ -46,7 +46,7 @@ func (ag *accountsGetter) getUnDelegatedValuesFromValidatorsContract(accountsWit
 
 	done, wg := make(chan struct{}, maxNumberOfParallelRequests), &sync.WaitGroup{}
 	errors := make([]string, 0)
-	for address, _ := range accountsWithStake {
+	for address := range accountsWithStake {
 		done <- struct{}{}
 		wg.Add(1)
 
