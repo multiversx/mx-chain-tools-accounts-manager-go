@@ -6,6 +6,7 @@ import (
 
 // ElasticClientStub -
 type ElasticClientStub struct {
+	DoScrollRequestAllDocumentsCalled func(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
 }
 
 // PutMapping -
@@ -24,8 +25,12 @@ func (e *ElasticClientStub) DoMultiGet(_ []string, _ string) ([]byte, error) {
 }
 
 // DoScrollRequestAllDocuments -
-func (e *ElasticClientStub) DoScrollRequestAllDocuments(_ string, _ []byte, _ func(responseBytes []byte) error) error {
-	panic("implement me")
+func (e *ElasticClientStub) DoScrollRequestAllDocuments(index string, body []byte, handlerFunc func(responseBytes []byte) error) error {
+	if e.DoScrollRequestAllDocumentsCalled != nil {
+		return e.DoScrollRequestAllDocumentsCalled(index, body, handlerFunc)
+	}
+
+	return nil
 }
 
 func (e *ElasticClientStub) IsInterfaceNil() bool {
