@@ -16,13 +16,13 @@ func TestAccountsGetter_DelegationMetaPutUnDelegatedValues(t *testing.T) {
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKeyConverter, data.RestApiAuthenticationData{}, config.GeneralConfig{}, &mocks.ElasticClientStub{
 		DoScrollRequestAllDocumentsCalled: func(index string, body []byte, handlerFunc func(responseBytes []byte) error) error {
-			// read from a file delegators
-			return handlerFunc(nil)
+			delegatorsJson := readJson("./testdata/delegators-es.json")
+			return handlerFunc([]byte(delegatorsJson))
 		},
 	})
 	require.Nil(t, err)
 
-	accountsWithStakeJson := readJson("./testdata/accounts-with-stake.json")
+	accountsWithStakeJson := readJson("./testdata/account-with-stake.json")
 	accountsWithStake := make(map[string]*data.AccountInfoWithStakeValues)
 	err = json.Unmarshal([]byte(accountsWithStakeJson), &accountsWithStake)
 	require.Nil(t, err)
@@ -30,8 +30,11 @@ func TestAccountsGetter_DelegationMetaPutUnDelegatedValues(t *testing.T) {
 	err = ag.unDelegatedInfoProc.putUnDelegateInfoFromStakingProviders(accountsWithStake)
 	require.Nil(t, err)
 
-	//for _, account := range accountsWithStake {
-	//	require.Equal(t, account.UnDelegateLegacy, "2000000000000000000")
-	//	require.Equal(t, account.UnDelegateLegacyNum, float64(2))
-	//}
+	accounts1 := accountsWithStake["erd102hpxzdawtka2usnmkqsk58v3k70jprhy50u4kdgc44j5azd6q5q7nn7f2"]
+	require.Equal(t, accounts1.UnDelegateDelegation, "2000000000000000000")
+	require.Equal(t, accounts1.UnDelegateDelegationNum, float64(2))
+
+	accounts2 := accountsWithStake["erd1063s32hkyj55dpvhtsadacpt268angz2rh2wu4zwqe54awxz5q5sdg5e8z"]
+	require.Equal(t, accounts2.UnDelegateDelegation, "10000000000000000000")
+	require.Equal(t, accounts2.UnDelegateDelegationNum, float64(10))
 }

@@ -1,0 +1,90 @@
+{
+  "took": 580,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 3177,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "delegators-000001",
+        "_type": "_doc",
+        "_id": "s98DmrWIeICFgff8xh5oeo8RG5Dmg8JTOq5AiNVlEsE=",
+        "_score": 1.0,
+        "_source": {
+          "address": "erd102hpxzdawtka2usnmkqsk58v3k70jprhy50u4kdgc44j5azd6q5q7nn7f2",
+          "contract": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+          "activeStake": "0",
+          "activeStakeNum": 0,
+          "unDelegateInfo": [
+            {
+              "id": "66756e64f4d4",
+              "value": "2000000000000000000",
+              "valueNum": 2,
+              "timestamp": 1676319378
+            }
+          ],
+          "timestamp": 1676319378
+        }
+      },
+      {
+        "_index": "delegators-000001",
+        "_type": "_doc",
+        "_id": "s98DmrWIeICFgff8xh5oeo8RG5Dmg8JTOq5AiNVlEsE=",
+        "_score": 1.0,
+        "_source": {
+          "address": "erd1063s32hkyj55dpvhtsadacpt268angz2rh2wu4zwqe54awxz5q5sdg5e8z",
+          "contract": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+          "activeStake": "0",
+          "activeStakeNum": 0,
+          "unDelegateInfo": [
+            {
+              "id": "66756e64f4d4",
+              "value": "3000000000000000000",
+              "timestamp": 1676319378
+            },
+            {
+              "id": "66756e64f4d6",
+              "value": "4000000000000000000",
+              "timestamp": 1676319378
+            }
+          ],
+          "timestamp": 1676319378
+        }
+      },
+      {
+        "_index": "delegators-000001",
+        "_type": "_doc",
+        "_id": "s98DmrWIeICFgff8xh5oeo8RG5Dmg8JTOq5AiNVlEsE=",
+        "_score": 1.0,
+        "_source": {
+          "address": "erd1063s32hkyj55dpvhtsadacpt268angz2rh2wu4zwqe54awxz5q5sdg5e8z",
+          "contract": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzab",
+          "activeStake": "0",
+          "activeStakeNum": 0,
+          "unDelegateInfo": [
+            {
+              "id": "66756e64f4d4",
+              "value": "2000000000000000000",
+              "timestamp": 1676319378
+            },
+            {
+              "id": "66756e64f4d6",
+              "value": "1000000000000000000",
+              "timestamp": 1676319378
+            }
+          ],
+          "timestamp": 1676319378
+        }
+      }
+    ]
+  }
+}

@@ -93,7 +93,7 @@ func extractDataFromResponseAndPutInAccountsWithStake(delegatorsResp *delegators
 func setUnDelegateValue(account *data.AccountInfoWithStakeValues, undelegatedValue *big.Int) {
 	if account.UnDelegateDelegation == "" {
 		account.UnDelegateDelegation = undelegatedValue.String()
-		account.UnDelegateValidatorNum = core.ComputeBalanceAsFloat(undelegatedValue.String())
+		account.UnDelegateDelegationNum = core.ComputeBalanceAsFloat(undelegatedValue.String())
 
 		return
 	}
@@ -106,5 +106,5 @@ func setUnDelegateValue(account *data.AccountInfoWithStakeValues, undelegatedVal
 
 	valueBig.Add(valueBig, undelegatedValue)
 	account.UnDelegateDelegation = valueBig.String()
-	account.UnDelegateValidatorNum = core.ComputeBalanceAsFloat(valueBig.String())
+	account.UnDelegateDelegationNum = core.ComputeBalanceAsFloat(valueBig.String())
 }
