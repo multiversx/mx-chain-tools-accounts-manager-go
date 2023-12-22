@@ -18,7 +18,7 @@ func TestExtractAddressesAndEnergy(t *testing.T) {
 
 	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	auth := core.FetchAuthenticationData(config.APIConfig{})
-	accountsWithEnergyGetter, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{})
+	accountsWithEnergyGetter, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{}, &mocks.ElasticClientStub{})
 	require.Nil(t, err)
 
 	testData := readJson("./testdata/account-storage.json")

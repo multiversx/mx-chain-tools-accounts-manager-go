@@ -1,0 +1,19 @@
+{
+  "erd102hpxzdawtka2usnmkqsk58v3k70jprhy50u4kdgc44j5azd6q5q7nn7f2": {
+    "balance": "",
+    "balanceNum": 0,
+    "shardID": 0,
+    "validatorsActive": "2500000000000000000000",
+    "validatorsActiveNum": 2500,
+    "validatorsTopUp": "0"
+  },
+  "erd1063s32hkyj55dpvhtsadacpt268angz2rh2wu4zwqe54awxz5q5sdg5e8z": {
+    "balance": "",
+    "balanceNum": 0,
+    "shardID": 0,
+    "validatorsActive": "2500000000000000000000",
+    "validatorsActiveNum": 2500,
+    "validatorsTopUp": "575214030510823986976",
+    "validatorsTopUpNum": 575.2140305108
+  }
+}

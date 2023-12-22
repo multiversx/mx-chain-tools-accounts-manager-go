@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	nodeCore "github.com/multiversx/mx-chain-core-go/core"
@@ -25,13 +26,16 @@ const (
 )
 
 type accountsGetter struct {
-	restClient         RestClientHandler
-	pubKeyConverter    nodeCore.PubkeyConverter
-	authenticationData data.RestApiAuthenticationData
+	unDelegatedInfoProc *unDelegatedInfoProcessor
+	restClient          RestClientHandler
+	pubKeyConverter     nodeCore.PubkeyConverter
+	authenticationData  data.RestApiAuthenticationData
+	mutex               sync.Mutex
 
 	delegationContractAddress string
 	lkMexContractAddress      string
 	energyContractAddress     string
+	validatorsContract        string
 }
 
 // NewAccountsGetter will create a new instance of accountsGetter
@@ -40,20 +44,28 @@ func NewAccountsGetter(
 	pubKeyConverter nodeCore.PubkeyConverter,
 	authenticationData data.RestApiAuthenticationData,
 	generalConfig config.GeneralConfig,
+	esClient ElasticClientHandler,
 ) (*accountsGetter, error) {
 	return &accountsGetter{
+		mutex:                     sync.Mutex{},
 		restClient:                restClient,
 		pubKeyConverter:           pubKeyConverter,
 		authenticationData:        authenticationData,
 		lkMexContractAddress:      generalConfig.LKMEXStakingContractAddress,
 		energyContractAddress:     generalConfig.EnergyContractAddress,
 		delegationContractAddress: generalConfig.DelegationLegacyContractAddress,
+		validatorsContract:        generalConfig.ValidatorsContract,
+		unDelegatedInfoProc:       newUnDelegateInfoProcessor(esClient),
 	}, nil
 }
 
 // GetLegacyDelegatorsAccounts will fetch all accounts with stake from API
 func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
+	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
+	if ag.delegationContractAddress == "" {
+		return accountsMap, nil
+	}
 
 	activeListAccounts, err := ag.getFullActiveListAccounts()
 	if err != nil {
@@ -65,7 +77,6 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 		return nil, err
 	}
 
-	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
 	for _, legacyStakeInfo := range activeListAccounts {
 		key, value := legacyStakeInfo.Address, legacyStakeInfo.Staked
 		_, found := accountsMap[key]
@@ -107,6 +118,11 @@ func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.Accoun
 	}
 
 	log.Info("legacy delegators accounts", "num", len(accountsMap))
+
+	err = ag.putUnDelegatedValuesFromDelegationLegacy(accountsMap)
+	if err != nil {
+		return nil, err
+	}
 
 	return accountsMap, nil
 }
@@ -189,6 +205,11 @@ func (ag *accountsGetter) GetValidatorsAccounts() (map[string]*data.AccountInfoW
 
 	log.Info("validators accounts", "num", len(accountsStake))
 
+	err = ag.putUndelegatedValuesFromValidatorsContract(accountsStake)
+	if err != nil {
+		return nil, err
+	}
+
 	return accountsStake, nil
 }
 
@@ -225,6 +246,11 @@ func (ag *accountsGetter) GetDelegatorsAccounts() (map[string]*data.AccountInfoW
 	}
 
 	log.Info("delegators accounts", "num", len(accountsStake))
+
+	err = ag.unDelegatedInfoProc.putUnDelegateInfoFromStakingProviders(accountsStake)
+	if err != nil {
+		return nil, err
+	}
 
 	return accountsStake, nil
 }

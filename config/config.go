@@ -25,6 +25,7 @@ type GeneralConfig struct {
 	DelegationLegacyContractAddress string
 	LKMEXStakingContractAddress     string
 	EnergyContractAddress           string
+	ValidatorsContract              string
 }
 
 // APIConfig holds the configuration for the API

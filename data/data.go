@@ -122,6 +122,15 @@ type StakeInfo struct {
 	Energy        string         `json:"energy,omitempty"`
 	EnergyNum     float64        `json:"energyNum,omitempty"`
 	EnergyDetails *EnergyDetails `json:"energyDetails,omitempty"`
+
+	UnDelegateLegacy        string  `json:"unDelegateLegacy,omitempty"`
+	UnDelegateLegacyNum     float64 `json:"unDelegateLegacyNum,omitempty"`
+	UnDelegateValidator     string  `json:"unDelegateValidator,omitempty"`
+	UnDelegateValidatorNum  float64 `json:"unDelegateValidatorNum,omitempty"`
+	UnDelegateDelegation    string  `json:"unDelegateDelegation,omitempty"`
+	UnDelegateDelegationNum float64 `json:"unDelegateDelegationNum,omitempty"`
+	TotalUnDelegate         string  `json:"totalUnDelegate,omitempty"`
+	TotalUnDelegateNum      float64 `json:"totalUnDelegateNum,omitempty"`
 }
 
 // EnergyDetails is the structure that contains details about the user's energy
