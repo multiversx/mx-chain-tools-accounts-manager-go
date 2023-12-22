@@ -28,7 +28,6 @@
     }
   },
   "settings": {
-    "index.lifecycle.name": "accounts-manager-retention-policy",
     "number_of_replicas": 1,
     "number_of_shards": 1
   }

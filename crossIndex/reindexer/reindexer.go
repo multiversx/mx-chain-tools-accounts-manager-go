@@ -52,13 +52,13 @@ func New(
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts *data.AccountsData) error {
 	log.Info("Create a new index with mapping")
 
-	template, policy, err := readTemplateAndPolicyForAccountsIndex(r.pathToIndicesConfig)
+	template, _, err := readTemplateAndPolicyForAccountsIndex(r.pathToIndicesConfig)
 	if err != nil {
 		return err
 	}
 
 	templateBytes := template.Bytes()
-	policyBytes := policy.Bytes()
+	//policyBytes := policy.Bytes()
 
 	for _, dstClient := range r.destinationClients {
 		err = dstClient.CreateIndexWithMapping(destinationIndex, bytes.NewBuffer(templateBytes))
@@ -66,10 +66,10 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 			return err
 		}
 
-		err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, bytes.NewBuffer(policyBytes))
-		if err != nil {
-			return err
-		}
+		//err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, bytes.NewBuffer(policyBytes))
+		//if err != nil {
+		//	return err
+		//}
 	}
 
 	saverFunc := func(responseBytes []byte) error {
