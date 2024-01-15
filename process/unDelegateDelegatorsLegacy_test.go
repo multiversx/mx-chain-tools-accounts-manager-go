@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccountsGetter_DelegationLegacyPutUnDelegatedValues(t *testing.T) {
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{
 		CallPostRestEndPointCalled: func(path string, dataD interface{}, response interface{}, authenticationData data.RestApiAuthenticationData) error {

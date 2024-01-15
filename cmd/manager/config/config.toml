@@ -19,8 +19,7 @@
 
 
 [Destination]
-    DestinationElasticSearchClients =  [{ Address = "http://127.0.0.1:9200", Username = "", Password = ""},
-                                       { Address = "http://127.0.0.1:9211", Username = "", Password = ""}]
+    DestinationElasticSearchClients =  [{ Address = "http://127.0.0.1:9200", Username = "", Password = ""}]
 
 [APIConfig]
     URL = ""

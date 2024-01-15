@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	data2 "github.com/multiversx/mx-chain-es-indexer-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex"
@@ -46,6 +47,55 @@ func New(
 		destinationClients:  destinationIndexer,
 		pathToIndicesConfig: pathToIndicesConfig,
 	}, nil
+}
+
+func (r *reindexer) IndexAllAccounts(destinationIndex string, allAccountsWithBalanceAndStake map[string]*data.AccountInfoWithStakeValues) error {
+	log.Info("Create a new index with mapping")
+
+	template, _, err := readTemplateAndPolicyForAccountsIndex(r.pathToIndicesConfig)
+	if err != nil {
+		return err
+	}
+
+	templateBytes := template.Bytes()
+
+	for _, dstClient := range r.destinationClients {
+		err = dstClient.CreateIndexWithMapping(destinationIndex, bytes.NewBuffer(templateBytes))
+		if err != nil {
+			return err
+		}
+	}
+
+	buffSlice := data2.NewBufferSlice(0)
+	for address, accountInfo := range allAccountsWithBalanceAndStake {
+		meta := []byte(fmt.Sprintf(`{ "index" : {"_id" : "%s" } }%s`, address, "\n"))
+		serializedData, errMarshal := json.Marshal(accountInfo)
+		if errMarshal != nil {
+			return errMarshal
+		}
+
+		errP := buffSlice.PutData(meta, serializedData)
+		if errP != nil {
+			return errP
+		}
+	}
+
+	count := 0
+	buffers := buffSlice.Buffers()
+	for idx1 := range buffers {
+		log.Info("indexing", "count", count)
+		count++
+		buffBytes := buffers[idx1].Bytes()
+
+		for _, dstClient := range r.destinationClients {
+			err = dstClient.DoBulkRequest(bytes.NewBuffer(buffBytes), destinationIndex)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -88,9 +89,25 @@ func startAccountsManager(ctx *cli.Context) error {
 		return err
 	}
 
-	err = dataProc.ProcessAccountsData()
+	startStr := os.Getenv("START_EPOCH")
+	start, err := strconv.Atoi(startStr)
 	if err != nil {
 		return err
+	}
+
+	stopSTR := os.Getenv("STOP_EPOCH")
+	stop, err := strconv.Atoi(stopSTR)
+	if err != nil {
+		return err
+	}
+
+	log.Info("starting snapshots", "start epoch", start, "stop epoch", stop)
+
+	for idx := start; idx < stop; idx++ {
+		err = dataProc.IndexDataFromS3(uint32(idx))
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Info("Done.")

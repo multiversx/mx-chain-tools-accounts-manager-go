@@ -36,7 +36,7 @@ func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (Da
 		return nil, err
 	}
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, "erd")
 	if err != nil {
 		return nil, err
 	}

@@ -53,7 +53,7 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 		return nil, err
 	}
 
-	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
+	allAccounts, allAddresses := mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
 
 	calculateTotalStakeForAccountsAndTotalUnDelegated(allAccounts)
 
@@ -89,7 +89,7 @@ func calculateTotalStakeForAccountsAndTotalUnDelegated(accounts map[string]*data
 	}
 }
 
-func (ap *accountsProcessor) mergeAccounts(
+func mergeAccounts(
 	legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy map[string]*data.AccountInfoWithStakeValues,
 ) (map[string]*data.AccountInfoWithStakeValues, []string) {
 	allAddresses := make([]string, 0)

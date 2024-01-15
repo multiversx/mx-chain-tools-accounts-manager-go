@@ -16,7 +16,7 @@ import (
 func TestExtractAddressesAndEnergy(t *testing.T) {
 	t.Parallel()
 
-	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 	auth := core.FetchAuthenticationData(config.APIConfig{})
 	accountsWithEnergyGetter, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{}, &mocks.ElasticClientStub{})
 	require.Nil(t, err)

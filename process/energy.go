@@ -104,7 +104,7 @@ func (ag *accountsGetter) extractAddressFromKey(key string) (string, bool) {
 		return "", false
 	}
 
-	return ag.pubKeyConverter.Encode(addressBytes), true
+	return ag.pubKeyConverter.SilentEncode(addressBytes, log), true
 }
 
 const (

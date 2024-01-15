@@ -54,10 +54,12 @@ type Cloner interface {
 // Reindexer defines what a reindexer should be able to do
 type Reindexer interface {
 	ReindexAccounts(sourceIndex string, destinationIndex string, accountsData *data.AccountsData) error
+	IndexAllAccounts(destinationIndex string, allAccountsWithBalanceAndStake map[string]*data.AccountInfoWithStakeValues) error
 	IsInterfaceNil() bool
 }
 
 // DataProcessor defines what a data processor should be able to do
 type DataProcessor interface {
 	ProcessAccountsData() error
+	IndexDataFromS3(epoch uint32) error
 }

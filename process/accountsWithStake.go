@@ -159,7 +159,7 @@ func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) (
 	returnedData := responseVmValue.Data.Data.ReturnData
 	accountsStake := make([]*data.StakedInfo, 0)
 	for idx := 0; idx < len(returnedData); idx += stepForLoop {
-		address := ag.pubKeyConverter.Encode(returnedData[idx])
+		address, _ := ag.pubKeyConverter.Encode(returnedData[idx])
 		stakedBalance := big.NewInt(0).SetBytes(returnedData[idx+1])
 
 		accountsStake = append(accountsStake, &data.StakedInfo{
@@ -288,7 +288,7 @@ func (ag *accountsGetter) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoW
 	returnedData := responseVmValue.Data.Data.ReturnData
 	accountsStake := make(map[string]string, 0)
 	for idx := 0; idx < len(returnedData); idx += stepForLoop {
-		address := ag.pubKeyConverter.Encode(returnedData[idx])
+		address, _ := ag.pubKeyConverter.Encode(returnedData[idx])
 		stakedBalance := big.NewInt(0).SetBytes(returnedData[idx+1])
 
 		accountsStake[address] = stakedBalance.String()
