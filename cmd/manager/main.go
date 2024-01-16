@@ -104,6 +104,7 @@ func startAccountsManager(ctx *cli.Context) error {
 	log.Info("starting snapshots", "start epoch", start, "stop epoch", stop)
 
 	for idx := start; idx < stop; idx++ {
+		log.Info("start snapshot", "epoch", idx)
 		err = dataProc.IndexDataFromS3(uint32(idx))
 		if err != nil {
 			return err
