@@ -28,6 +28,7 @@ var log = logger.GetOrCreate("elasticClient")
 type esClient struct {
 	client      *elasticsearch.Client
 	countScroll int
+	clusterURL  string
 }
 
 // NewElasticClient will create a new instance of an esClient
@@ -38,6 +39,7 @@ func NewElasticClient(cfg data.EsClientConfig) (*esClient, error) {
 	}
 
 	return &esClient{
+		clusterURL:  cfg.Address,
 		client:      elasticClient,
 		countScroll: 0,
 	}, nil
@@ -55,7 +57,7 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("error DoBulkRequest: %s", res.String())
+		return fmt.Errorf("error DoBulkRequest: %s, url: %s", res.String(), ec.clusterURL)
 	}
 
 	defer closeBody(res)
@@ -192,7 +194,7 @@ func (ec *esClient) CreateIndexWithMapping(index string, mapping *bytes.Buffer) 
 	}
 
 	if res.IsError() {
-		return fmt.Errorf("error CreateIndexWithMapping: %s", res.String())
+		return fmt.Errorf("error CreateIndexWithMapping: %s, url: %s", res.String(), ec.clusterURL)
 	}
 
 	defer closeBody(res)
