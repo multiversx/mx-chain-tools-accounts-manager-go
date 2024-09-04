@@ -3,9 +3,10 @@ package process
 import (
 	"bytes"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
-	"math/big"
 )
 
 const (

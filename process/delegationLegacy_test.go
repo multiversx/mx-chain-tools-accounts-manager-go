@@ -3,13 +3,14 @@ package process
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/mocks"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"testing"
 )
 
 func TestReadDelegationLegacyStateFromFileAndExtractData(t *testing.T) {
