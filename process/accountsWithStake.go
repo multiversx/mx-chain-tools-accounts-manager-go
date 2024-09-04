@@ -19,8 +19,6 @@ const (
 	pathValidatorsStake = "/network/direct-staked-info"
 	pathDelegatorStake  = "/network/delegated-info"
 	pathVMValues        = "/vm-values/query"
-	getFullWaitingList  = "getFullWaitingList"
-	getFullActiveList   = "getFullActiveList"
 	lkMexSnapShot       = "getSnapshot"
 	pathAccountKeys     = "/address/%s/keys"
 )
@@ -62,113 +60,27 @@ func NewAccountsGetter(
 // GetLegacyDelegatorsAccounts will fetch all accounts with stake from API
 func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
-	accountsMap := make(map[string]*data.AccountInfoWithStakeValues)
-	if ag.delegationContractAddress == "" {
-		return accountsMap, nil
-	}
 
-	activeListAccounts, err := ag.getFullActiveListAccounts()
+	responseKeys := &data.GenericAPIResponse{}
+	path := fmt.Sprintf(pathAddressKeys, ag.delegationContractAddress)
+	err := ag.restClient.CallGetRestEndPoint(path, responseKeys, core.GetEmptyApiCredentials())
 	if err != nil {
 		return nil, err
 	}
+	if responseKeys.Error != "" {
+		return nil, fmt.Errorf("%s", responseKeys.Error)
+	}
 
-	fullWaitingListAccounts, err := ag.getFullWaitingListAccounts()
+	pairs := gjson.Get(string(responseKeys.Data), "pairs")
+
+	pairsMap := make(map[string]string)
+	err = json.Unmarshal([]byte(pairs.String()), &pairsMap)
 	if err != nil {
+		log.Warn("cannot unmarshal accounts info", "error", err.Error())
 		return nil, err
 	}
 
-	for _, legacyStakeInfo := range activeListAccounts {
-		key, value := legacyStakeInfo.Address, legacyStakeInfo.Staked
-		_, found := accountsMap[key]
-		if !found {
-			accountsMap[key] = &data.AccountInfoWithStakeValues{
-				StakeInfo: data.StakeInfo{
-					DelegationLegacyActive:    value,
-					DelegationLegacyActiveNum: core.ComputeBalanceAsFloat(value),
-				},
-			}
-
-			continue
-		}
-
-		valueStake, valueStakeNum := computeTotalBalance(value, accountsMap[key].DelegationLegacyActive)
-
-		accountsMap[key].DelegationLegacyActive = valueStake
-		accountsMap[key].DelegationLegacyActiveNum = valueStakeNum
-	}
-
-	for _, legacyWaitingInfo := range fullWaitingListAccounts {
-		key, value := legacyWaitingInfo.Address, legacyWaitingInfo.Staked
-		_, ok := accountsMap[key]
-		if !ok {
-			accountsMap[key] = &data.AccountInfoWithStakeValues{
-				StakeInfo: data.StakeInfo{
-					DelegationLegacyWaiting:    value,
-					DelegationLegacyWaitingNum: core.ComputeBalanceAsFloat(value),
-				},
-			}
-
-			continue
-		}
-
-		valueWaiting, valueWaitingNum := computeTotalBalance(value, accountsMap[key].DelegationLegacyWaiting)
-
-		accountsMap[key].DelegationLegacyWaiting = valueWaiting
-		accountsMap[key].DelegationLegacyWaitingNum = valueWaitingNum
-	}
-
-	log.Info("legacy delegators accounts", "num", len(accountsMap))
-
-	err = ag.putUnDelegatedValuesFromDelegationLegacy(accountsMap)
-	if err != nil {
-		return nil, err
-	}
-
-	return accountsMap, nil
-}
-
-func (ag *accountsGetter) getFullActiveListAccounts() ([]*data.StakedInfo, error) {
-	return ag.getAccountsVMQuery(getFullActiveList, 2)
-}
-
-func (ag *accountsGetter) getFullWaitingListAccounts() ([]*data.StakedInfo, error) {
-	return ag.getAccountsVMQuery(getFullWaitingList, 3)
-}
-
-func (ag *accountsGetter) getAccountsVMQuery(funcName string, stepForLoop int) ([]*data.StakedInfo, error) {
-	vmRequest := &data.VmValueRequest{
-		Address:    ag.delegationContractAddress,
-		FuncName:   funcName,
-		CallerAddr: ag.delegationContractAddress,
-	}
-
-	responseVmValue := &data.ResponseVmValue{}
-	err := ag.restClient.CallPostRestEndPoint(pathVMValues, vmRequest, responseVmValue, core.GetEmptyApiCredentials())
-	if err != nil {
-		return nil, err
-	}
-	if responseVmValue.Error != "" {
-		return nil, fmt.Errorf("%s", responseVmValue.Error)
-	}
-	if responseVmValue.Data.Data != nil {
-		if responseVmValue.Data.Data.ReturnCode != vmcommon.Ok.String() {
-			return nil, fmt.Errorf("%s: %s", responseVmValue.Data.Data.ReturnCode, responseVmValue.Data.Data.ReturnMessage)
-		}
-	}
-
-	returnedData := responseVmValue.Data.Data.ReturnData
-	accountsStake := make([]*data.StakedInfo, 0)
-	for idx := 0; idx < len(returnedData); idx += stepForLoop {
-		address := ag.pubKeyConverter.Encode(returnedData[idx])
-		stakedBalance := big.NewInt(0).SetBytes(returnedData[idx+1])
-
-		accountsStake = append(accountsStake, &data.StakedInfo{
-			Address: address,
-			Staked:  stakedBalance.String(),
-		})
-	}
-
-	return accountsStake, nil
+	return ag.extractDelegationLegacyData(pairsMap)
 }
 
 // GetValidatorsAccounts will fetch all validators accounts
