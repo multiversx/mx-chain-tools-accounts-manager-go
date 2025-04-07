@@ -6,12 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
+	"time"
 
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 )
+
+const maxNumOfRetries = 10
 
 var log = logger.GetOrCreate("restClient")
 
@@ -91,9 +95,31 @@ func (rc *restClient) CallPostRestEndPoint(
 		req.SetBasicAuth(authenticationData.Username, authenticationData.Password)
 	}
 
-	resp, err := rc.httpClient.Do(req)
-	if err != nil {
-		return err
+	var count int
+	var resp *http.Response
+	for {
+		resp, err = rc.httpClient.Do(req)
+
+		if err != nil {
+			if count < maxNumOfRetries {
+				log.Warn("rc.httpClient.Do", "error", err)
+				count++
+				sleep(count)
+				continue
+			}
+			return fmt.Errorf("too many retries, error: %w", err)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusRequestTimeout {
+			_ = resp.Body.Close()
+			if count < maxNumOfRetries {
+				count++
+				sleep(count)
+				continue
+			}
+		}
+
+		break
 	}
 
 	defer func() {
@@ -121,4 +147,9 @@ func (rc *restClient) CallPostRestEndPoint(
 	}
 
 	return errors.New(genericApiResponse.Error)
+}
+
+func sleep(count int) {
+	delay := time.Duration(math.Exp2(float64(count))) * time.Second
+	time.Sleep(delay)
 }

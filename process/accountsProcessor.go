@@ -55,7 +55,7 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 
 	allAccounts, allAddresses := ap.mergeAccounts(legacyDelegators, validators, delegators, lkMexAccountsWithStake, accountsWithEnergy)
 
-	calculateTotalStakeForAccounts(allAccounts)
+	calculateTotalStakeForAccountsAndTotalUnDelegated(allAccounts)
 
 	return &data.AccountsData{
 		AccountsWithStake: allAccounts,
@@ -65,7 +65,7 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 	}, nil
 }
 
-func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithStakeValues) {
+func calculateTotalStakeForAccountsAndTotalUnDelegated(accounts map[string]*data.AccountInfoWithStakeValues) {
 	for _, account := range accounts {
 		totalStake, totalStakeNum := computeTotalBalance(
 			account.DelegationLegacyWaiting,
@@ -77,6 +77,15 @@ func calculateTotalStakeForAccounts(accounts map[string]*data.AccountInfoWithSta
 
 		account.TotalStake = totalStake
 		account.TotalStakeNum = totalStakeNum
+
+		totalUnDelegated, totalUnDelegatedNum := computeTotalBalance(
+			account.UnDelegateLegacy,
+			account.UnDelegateValidator,
+			account.UnDelegateDelegation,
+		)
+
+		account.TotalUnDelegate = totalUnDelegated
+		account.TotalUnDelegateNum = totalUnDelegatedNum
 	}
 }
 
@@ -105,6 +114,9 @@ func (ap *accountsProcessor) mergeAccounts(
 		mergedAccounts[address].ValidatorsActiveNum = stakedValidators.ValidatorsActiveNum
 		mergedAccounts[address].ValidatorTopUp = stakedValidators.ValidatorTopUp
 		mergedAccounts[address].ValidatorTopUpNum = stakedValidators.ValidatorTopUpNum
+
+		mergedAccounts[address].UnDelegateValidator = stakedValidators.UnDelegateValidator
+		mergedAccounts[address].UnDelegateValidatorNum = stakedValidators.UnDelegateValidatorNum
 	}
 
 	for address, stakedDelegators := range delegators {
@@ -118,6 +130,9 @@ func (ap *accountsProcessor) mergeAccounts(
 
 		mergedAccounts[address].Delegation = stakedDelegators.Delegation
 		mergedAccounts[address].DelegationNum = stakedDelegators.DelegationNum
+
+		mergedAccounts[address].UnDelegateDelegation = stakedDelegators.UnDelegateDelegation
+		mergedAccounts[address].UnDelegateDelegationNum = stakedDelegators.UnDelegateDelegationNum
 	}
 
 	for address, lkMexAccount := range lkMexAccountsWithStake {

@@ -28,6 +28,7 @@ func MergeElasticAndRestAccounts(
 		totalBalanceWithStake, totalBalanceWithStakeNum := computeTotalBalance(
 			accounts[address].Balance,
 			accountRest.TotalStake,
+			accountRest.TotalUnDelegate,
 		)
 
 		accounts[address].TotalBalanceWithStake = totalBalanceWithStake

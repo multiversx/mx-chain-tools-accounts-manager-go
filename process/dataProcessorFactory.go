@@ -47,6 +47,7 @@ func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (Da
 		pubKeyConverter,
 		authenticationData,
 		cfg.GeneralConfig,
+		sourceEsClient,
 	)
 	if err != nil {
 		return nil, err
