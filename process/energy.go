@@ -64,7 +64,7 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 		if !ok {
 			continue
 		}
-		energyDetails, ok := ag.extractEnergyFromValue(value)
+		energyDetails, ok := extractEnergyFromValue(value)
 		if !ok {
 			continue
 		}
@@ -112,7 +112,7 @@ const (
 	numBytesForU64Value       = 8
 )
 
-func (ag *accountsGetter) extractEnergyFromValue(value string) (*data.EnergyDetails, bool) {
+func extractEnergyFromValue(value string) (*data.EnergyDetails, bool) {
 	decodedBytes, err := hex.DecodeString(value)
 	if err != nil {
 		log.Warn("cannot decode energy structure bytes", "error", err)
@@ -150,6 +150,13 @@ func (ag *accountsGetter) extractEnergyFromValue(value string) (*data.EnergyDeta
 	/////////////////////////////////////////////////////////////////////////////////
 
 	amount := big.NewInt(0).SetBytes(amountValueInBytes)
+	if amountValueInBytes[0]&0x80 != 0 { // check MSB
+		// Create 2^N where N is number of bits
+		bitLen := len(amountValueInBytes) * 8
+		twoPow := new(big.Int).Lsh(big.NewInt(1), uint(bitLen))
+		amount.Sub(amount, twoPow)
+	}
+
 	totalLockedTokens := big.NewInt(0).SetBytes(lockTokenValueInBytes)
 	energy := &data.EnergyDetails{
 		Amount:            amount.String(),
