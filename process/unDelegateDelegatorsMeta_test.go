@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccountsGetter_DelegationMetaPutUnDelegatedValues(t *testing.T) {
+	t.Parallel()
 	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKeyConverter, data.RestApiAuthenticationData{}, config.GeneralConfig{}, &mocks.ElasticClientStub{

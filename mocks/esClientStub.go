@@ -33,6 +33,7 @@ func (e *ElasticClientStub) DoScrollRequestAllDocuments(index string, body []byt
 	return nil
 }
 
+// IsInterfaceNil -
 func (e *ElasticClientStub) IsInterfaceNil() bool {
 	return e == nil
 }

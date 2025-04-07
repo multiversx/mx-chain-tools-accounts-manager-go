@@ -58,18 +58,12 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 	}
 
 	templateBytes := template.Bytes()
-	//policyBytes := policy.Bytes()
 
 	for _, dstClient := range r.destinationClients {
 		err = dstClient.CreateIndexWithMapping(destinationIndex, bytes.NewBuffer(templateBytes))
 		if err != nil {
 			return err
 		}
-
-		//err = dstClient.PutPolicy(crossIndex.AccountsPolicyName, bytes.NewBuffer(policyBytes))
-		//if err != nil {
-		//	return err
-		//}
 	}
 
 	saverFunc := func(responseBytes []byte) error {

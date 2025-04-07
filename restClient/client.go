@@ -95,24 +95,31 @@ func (rc *restClient) CallPostRestEndPoint(
 		req.SetBasicAuth(authenticationData.Username, authenticationData.Password)
 	}
 
-	var count = 0
-TryAgain:
-	resp, err := rc.httpClient.Do(req)
-	if err != nil && count < maxNumOfRetries {
-		log.Warn("rc.httpClient.Do", "error", err)
-		count++
-		sleep(count)
-		goto TryAgain
-	}
-	if err != nil {
-		return fmt.Errorf("too many retries, error: %w", err)
-	}
+	var count int
+	var resp *http.Response
+	for {
+		resp, err = rc.httpClient.Do(req)
 
-	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusRequestTimeout {
-		_ = resp.Body.Close()
-		count++
-		sleep(count)
-		goto TryAgain
+		if err != nil {
+			if count < maxNumOfRetries {
+				log.Warn("rc.httpClient.Do", "error", err)
+				count++
+				sleep(count)
+				continue
+			}
+			return fmt.Errorf("too many retries, error: %w", err)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusRequestTimeout {
+			_ = resp.Body.Close()
+			if count < maxNumOfRetries {
+				count++
+				sleep(count)
+				continue
+			}
+		}
+
+		break
 	}
 
 	defer func() {

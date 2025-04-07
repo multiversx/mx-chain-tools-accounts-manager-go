@@ -14,6 +14,8 @@ import (
 )
 
 func TestReadDelegationLegacyStateFromFileAndExtractData(t *testing.T) {
+	t.Parallel()
+
 	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	auth := core.FetchAuthenticationData(config.APIConfig{})
 	accountsGetterLegacyDelegation, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{}, &mocks.ElasticClientStub{})

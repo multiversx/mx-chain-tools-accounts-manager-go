@@ -13,9 +13,13 @@ const (
 	pathAddressKeys = "/address/%s/keys"
 
 	userAddressPrefix = "user_id"
+
+	addressLength = 32
 )
 
-func (ag *accountsGetter) extractDelegationLegacyData(pairsMap map[string]string) (map[string]*data.AccountInfoWithStakeValues, error) {
+func (ag *accountsGetter) extractDelegationLegacyData(
+	pairsMap map[string]string,
+) (map[string]*data.AccountInfoWithStakeValues, error) {
 	userAddressID, err := ag.extractUsersIDMap(pairsMap)
 	if err != nil {
 		return nil, err
@@ -59,24 +63,30 @@ func isCorrectPrefix(key string) bool {
 		!bytes.HasPrefix(keyDecoded, []byte("fuser"))
 }
 
+const (
+	delegationActive   = byte(4)
+	delegationWaiting  = byte(1)
+	delegationUnStaked = byte(5)
+)
+
 func (ag *accountsGetter) processDecodedValue(decodedValue []byte, userIDTotalDelegationActive, userIDTotalDelegationWaiting, userIDTotalUnStaked map[int]*big.Int) error {
 	var userID, amountLen int64
 	var amount *big.Int
 
 	switch decodedValue[0] {
-	case byte(4): // active
+	case delegationActive:
 		userID = big.NewInt(0).SetBytes(decodedValue[1:5]).Int64()
 		amountLen = big.NewInt(0).SetBytes(decodedValue[5:9]).Int64()
 		amount = big.NewInt(0).SetBytes(decodedValue[9 : 9+amountLen])
 		addToTotal(userIDTotalDelegationActive, int(userID), amount)
 
-	case byte(1): // waiting
+	case delegationWaiting:
 		userID = big.NewInt(0).SetBytes(decodedValue[9:13]).Int64()
 		amountLen = big.NewInt(0).SetBytes(decodedValue[13:17]).Int64()
 		amount = big.NewInt(0).SetBytes(decodedValue[17 : 17+amountLen])
 		addToTotal(userIDTotalDelegationWaiting, int(userID), amount)
 
-	case byte(5): // unStaked
+	case delegationUnStaked:
 		userID = big.NewInt(0).SetBytes(decodedValue[9:13]).Int64()
 		amountLen = big.NewInt(0).SetBytes(decodedValue[13:17]).Int64()
 		amount = big.NewInt(0).SetBytes(decodedValue[17 : 17+amountLen])
@@ -113,7 +123,8 @@ func (ag *accountsGetter) buildAddressWithStakeMap(
 		}
 
 		if delegationWaitingValue, ok := userIDTotalDelegationWaiting[userID]; ok {
-			if _, found := mapAddressWithStake[address]; !found {
+			_, found := mapAddressWithStake[address]
+			if !found {
 				mapAddressWithStake[address] = &data.AccountInfoWithStakeValues{
 					StakeInfo: data.StakeInfo{},
 				}
@@ -123,7 +134,8 @@ func (ag *accountsGetter) buildAddressWithStakeMap(
 		}
 
 		if delegationUnStakedValue, ok := userIDTotalUnStaked[userID]; ok {
-			if _, found := mapAddressWithStake[address]; !found {
+			_, found := mapAddressWithStake[address]
+			if !found {
 				mapAddressWithStake[address] = &data.AccountInfoWithStakeValues{
 					StakeInfo: data.StakeInfo{},
 				}
@@ -144,7 +156,7 @@ func (ag *accountsGetter) extractUsersIDMap(pairsMap map[string]string) (map[str
 			return nil, errD
 		}
 
-		if bytes.HasPrefix(keyDecoded, []byte(userAddressPrefix)) && len(keyDecoded) == len(userAddressPrefix)+32 {
+		if bytes.HasPrefix(keyDecoded, []byte(userAddressPrefix)) && len(keyDecoded) == len(userAddressPrefix)+addressLength {
 			userAddress := ag.pubKeyConverter.Encode(keyDecoded[len(userAddressPrefix):])
 			valueDecoded, errE := hex.DecodeString(value)
 			if errE != nil {

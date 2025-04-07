@@ -51,7 +51,12 @@ func (ag *accountsGetter) getUnDelegatedValuesFromValidatorsContract(accountsWit
 		wg.Add(1)
 
 		go func(addr string) {
-			value, err := ag.getUnDelegatedValueForAddressValidatorsContract(addr, done, wg)
+			defer func() {
+				<-done
+				wg.Done()
+			}()
+
+			value, err := ag.getUnDelegatedValueForAddressValidatorsContract(addr)
 			if err != nil {
 				ag.mutex.Lock()
 				errors = append(errors, err.Error())
@@ -77,11 +82,7 @@ func (ag *accountsGetter) getUnDelegatedValuesFromValidatorsContract(accountsWit
 	return unDelegatedValue, nil
 }
 
-func (ag *accountsGetter) getUnDelegatedValueForAddressValidatorsContract(address string, done chan struct{}, wg *sync.WaitGroup) (*big.Int, error) {
-	defer func() {
-		<-done
-		wg.Done()
-	}()
+func (ag *accountsGetter) getUnDelegatedValueForAddressValidatorsContract(address string) (*big.Int, error) {
 
 	decodedAddr, err := ag.pubKeyConverter.Decode(address)
 	if err != nil {
@@ -107,6 +108,10 @@ func (ag *accountsGetter) getUnDelegatedValueForAddressValidatorsContract(addres
 		if responseVmValue.Data.Data.ReturnCode != vmcommon.Ok.String() {
 			return nil, fmt.Errorf("%s: %s", responseVmValue.Data.Data.ReturnCode, responseVmValue.Data.Data.ReturnMessage)
 		}
+	}
+
+	if responseVmValue.Data.Data == nil {
+		return big.NewInt(0), nil
 	}
 
 	returnData := responseVmValue.Data.Data.ReturnData

@@ -15,6 +15,8 @@ import (
 )
 
 func TestAccountsGetter_ValidatorsAccountsPutUnDelegatedValues(t *testing.T) {
+	t.Parallel()
+
 	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{
