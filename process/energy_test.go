@@ -79,6 +79,20 @@ func readJson(path string) string {
 	return string(byteValue)
 }
 
+func TestExtractEnergyValue(t *testing.T) {
+	input := "0000000bff6ccc6b2db50c5215ad8b000000000000035e0000000a0cd2f65ea43133838fec"
+
+	energyDetails, ok := extractEnergyFromValue(input)
+	require.True(t, ok)
+	require.NotNil(t, energyDetails)
+
+	require.Equal(t, &data.EnergyDetails{
+		LastUpdateEpoch:   862,
+		Amount:            "-695139380645670211441269",
+		TotalLockedTokens: "60559966857227114090476",
+	}, energyDetails)
+}
+
 func TestExtractBlockInfo(t *testing.T) {
 	t.Parallel()
 
