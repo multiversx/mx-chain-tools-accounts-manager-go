@@ -150,7 +150,7 @@ func extractEnergyFromValue(value string) (*data.EnergyDetails, bool) {
 	/////////////////////////////////////////////////////////////////////////////////
 
 	amount := big.NewInt(0).SetBytes(amountValueInBytes)
-	if amountValueInBytes[0]&0x80 != 0 { // check MSB
+	if len(amountValueInBytes) > 0 && amountValueInBytes[0]&0x80 != 0 { // check MSB
 		// Create 2^N where N is number of bits
 		bitLen := len(amountValueInBytes) * 8
 		twoPow := new(big.Int).Lsh(big.NewInt(1), uint(bitLen))
