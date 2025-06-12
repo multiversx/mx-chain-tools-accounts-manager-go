@@ -60,6 +60,7 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 
 	accountsWithEnergy := make(map[string]*data.AccountInfoWithStakeValues)
 	for key, value := range keyValueMap {
+
 		address, ok := ag.extractAddressFromKey(key)
 		if !ok {
 			continue
@@ -70,17 +71,12 @@ func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, curre
 		}
 
 		energyValue := calculateEnergyValueBasedOnCurrentEpoch(energyDetails, currentEpoch)
-
-		// ignore addresses with energyValue less or equal to zero
-		zero := big.NewInt(0)
-		if zero.Cmp(energyValue) > 0 {
-			continue
-		}
+		energyNum := core.ComputeBalanceAsFloat(energyValue.String())
 
 		accountsWithEnergy[address] = &data.AccountInfoWithStakeValues{
 			StakeInfo: data.StakeInfo{
 				Energy:        energyValue.String(),
-				EnergyNum:     core.ComputeBalanceAsFloat(energyValue.String()),
+				EnergyNum:     energyNum,
 				EnergyDetails: energyDetails,
 			},
 		}

@@ -25,51 +25,68 @@ func TestExtractAddressesAndEnergy(t *testing.T) {
 	res, err := accountsWithEnergyGetter.extractAddressesAndEnergy([]byte(testData), 2047)
 	require.Nil(t, err)
 	require.NotNil(t, res)
-	require.Len(t, res, 4)
-	require.Equal(t, map[string]*data.AccountInfoWithStakeValues{
-		"erd10f7nnvqk8xvyd50f2sc5p4e0ru4alf99p3v7zfe4uvenra2esges39a9x7": {
-			StakeInfo: data.StakeInfo{
-				Energy:    "336000000000000000000",
-				EnergyNum: 336,
-				EnergyDetails: &data.EnergyDetails{
-					LastUpdateEpoch:   1891,
-					Amount:            "5328000000000000000000",
-					TotalLockedTokens: "32000000000000000000",
-				},
+
+	resNegativeEnergy := res["erd1ytknlprw8lyfn9x5yn0e0c8wtttkzumzm5z7dp4ynadnhq26aczslsh9q7"]
+	require.Equal(t, &data.AccountInfoWithStakeValues{
+		StakeInfo: data.StakeInfo{
+			Energy:    "-2613000000000000000000",
+			EnergyNum: -2613,
+			EnergyDetails: &data.EnergyDetails{
+				LastUpdateEpoch:   1891,
+				Amount:            "1599000000000000000000",
+				TotalLockedTokens: "27000000000000000000",
 			},
 		},
-		"erd1ejjwyzrdj053vcs5nhupxn6kha8audf4mla6tth9339zmcx52w5q7djae2": {
-			StakeInfo: data.StakeInfo{
-				Energy:    "273000000000000000000",
-				EnergyNum: 273,
-				EnergyDetails: &data.EnergyDetails{
-					LastUpdateEpoch:   1891,
-					Amount:            "4173000000000000000000",
-					TotalLockedTokens: "25000000000000000000",
-				},
+	}, resNegativeEnergy)
+
+	require.Equal(t, &data.AccountInfoWithStakeValues{
+		StakeInfo: data.StakeInfo{
+			Energy:    "336000000000000000000",
+			EnergyNum: 336,
+			EnergyDetails: &data.EnergyDetails{
+				LastUpdateEpoch:   1891,
+				Amount:            "5328000000000000000000",
+				TotalLockedTokens: "32000000000000000000",
 			},
 		},
-		"erd1yhhzgv5ql3h8gppy5286grre23vfgw68tnth7dmcl8ywpd9puluqlcvvw9": {
-			StakeInfo: data.StakeInfo{
-				Energy:    "12625000000000000000000000",
-				EnergyNum: 12625000,
-				EnergyDetails: &data.EnergyDetails{
-					LastUpdateEpoch:   1881,
-					Amount:            "96455000000000000000000000",
-					TotalLockedTokens: "505000000000000000000000",
-				},
-			}},
-		"erd188lxgu4m889yht73t3svs4lxknfqtv2vgymgzz283x6wv4hw9nwq0cgw0v": {
-			StakeInfo: data.StakeInfo{
-				Energy:    "63371454581200312235",
-				EnergyNum: 63.3714545812,
-				EnergyDetails: &data.EnergyDetails{
-					LastUpdateEpoch:   1881,
-					Amount:            "4544871637244977820221",
-					TotalLockedTokens: "26996989052191430771",
-				},
-			}},
-	}, res)
+	}, res["erd10f7nnvqk8xvyd50f2sc5p4e0ru4alf99p3v7zfe4uvenra2esges39a9x7"])
+
+	require.Equal(t, &data.AccountInfoWithStakeValues{
+		StakeInfo: data.StakeInfo{
+			Energy:    "273000000000000000000",
+			EnergyNum: 273,
+			EnergyDetails: &data.EnergyDetails{
+				LastUpdateEpoch:   1891,
+				Amount:            "4173000000000000000000",
+				TotalLockedTokens: "25000000000000000000",
+			},
+		},
+	}, res["erd1ejjwyzrdj053vcs5nhupxn6kha8audf4mla6tth9339zmcx52w5q7djae2"])
+
+	require.Equal(t, &data.AccountInfoWithStakeValues{
+		StakeInfo: data.StakeInfo{
+			Energy:    "12625000000000000000000000",
+			EnergyNum: 12625000,
+			EnergyDetails: &data.EnergyDetails{
+				LastUpdateEpoch:   1881,
+				Amount:            "96455000000000000000000000",
+				TotalLockedTokens: "505000000000000000000000",
+			},
+		},
+	}, res["erd1yhhzgv5ql3h8gppy5286grre23vfgw68tnth7dmcl8ywpd9puluqlcvvw9"])
+
+	require.Equal(t, &data.AccountInfoWithStakeValues{
+		StakeInfo: data.StakeInfo{
+			Energy:    "63371454581200312235",
+			EnergyNum: 63.3714545812,
+			EnergyDetails: &data.EnergyDetails{
+				LastUpdateEpoch:   1881,
+				Amount:            "4544871637244977820221",
+				TotalLockedTokens: "26996989052191430771",
+			},
+		},
+	}, res["erd188lxgu4m889yht73t3svs4lxknfqtv2vgymgzz283x6wv4hw9nwq0cgw0v"])
+
 }
 
 func readJson(path string) string {
