@@ -32,5 +32,5 @@ func ComputeBalanceAsFloat(balance string) float64 {
 	bal := balanceFloat64 / dividerForDenomination
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
-	return core.MaxFloat64(balanceFloatWithDecimals, 0)
+	return balanceFloatWithDecimals
 }

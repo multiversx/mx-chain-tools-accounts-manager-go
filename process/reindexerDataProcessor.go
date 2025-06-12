@@ -32,6 +32,8 @@ func (dp *reindexerDataProcessor) ProcessAccountsData() error {
 		return err
 	}
 
+	log.Info("Processing accounts data", "epoch", epoch)
+
 	accountsRest, err := dp.accountsProcessor.GetAllAccountsWithStake(epoch)
 	if err != nil {
 		return err
@@ -41,6 +43,8 @@ func (dp *reindexerDataProcessor) ProcessAccountsData() error {
 	if err != nil {
 		return err
 	}
+
+	log.Info("Trying  to create new index", "newIndex", newIndex, "epoch", epoch)
 
 	return dp.reindexer.ReindexAccounts(accountsIndex, newIndex, accountsRest)
 }
