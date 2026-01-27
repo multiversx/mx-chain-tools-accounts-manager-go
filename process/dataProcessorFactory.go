@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/crossIndex/reindexer"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/elasticClient"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/restClient"
 )
@@ -36,7 +37,7 @@ func getReindexerDataProcessor(cfg *config.Config, indicesConfigPath string) (Da
 		return nil, err
 	}
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, "erd")
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, data.AddressHRP)
 	if err != nil {
 		return nil, err
 	}

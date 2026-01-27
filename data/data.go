@@ -7,6 +7,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
+const AddressHRP = "erd"
+
 // GenericAPIResponse defines the structure of all responses on API endpoints
 type GenericAPIResponse struct {
 	Data  json.RawMessage `json:"data"`

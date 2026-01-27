@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/config"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
+	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/mocks"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
@@ -16,7 +17,7 @@ import (
 func TestReadDelegationLegacyStateFromFileAndExtractData(t *testing.T) {
 	t.Parallel()
 
-	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, data.AddressHRP)
 	auth := core.FetchAuthenticationData(config.APIConfig{})
 	accountsGetterLegacyDelegation, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{}, &mocks.ElasticClientStub{})
 	require.Nil(t, err)

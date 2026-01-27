@@ -14,6 +14,10 @@ func (a *AccountsGetterStub) GetAccountsWithEnergy(_ uint32) (map[string]*data.A
 	return nil, nil, nil
 }
 
+func (a *AccountsGetterStub) GetAccountsWithEnergyV2(_ uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error) {
+	return nil, nil, nil
+}
+
 func (a *AccountsGetterStub) GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	return nil, nil
 }
