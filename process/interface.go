@@ -43,6 +43,7 @@ type AccountsGetterHandler interface {
 	GetDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetLKMEXStakeAccounts() (map[string]*data.AccountInfoWithStakeValues, error)
 	GetAccountsWithEnergy(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error)
+	GetAccountsWithEnergyV2(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error)
 }
 
 // Cloner defines what a clone should be able to do

@@ -14,6 +14,24 @@ type GenericAPIResponse struct {
 	Code  string          `json:"code"`
 }
 
+// IterateKeysRequest defines the /address/iterate-keys endpoint request structure
+type IterateKeysRequest struct {
+	Address       string   `json:"address"`
+	NumKeys       int      `json:"numKeys"`
+	IteratorState []string `json:"iteratorState"`
+}
+
+// IterateKeysAPIResponse defines the /address/iterate-keys endpoint response
+type IterateKeysAPIResponse struct {
+	Data struct {
+		BlockInfo        *BlockInfo        `json:"blockInfo"`
+		NewIteratorState []string          `json:"newIteratorState"`
+		Pairs            map[string]string `json:"pairs"`
+	} `json:"data"`
+	Code  string `json:"code"`
+	Error string `json:"error"`
+}
+
 // BlockInfo defines the structure of block info
 type BlockInfo struct {
 	Hash     string `json:"hash"`
@@ -93,6 +111,8 @@ type BulkRequestResponse struct {
 type AccountInfoWithStakeValues struct {
 	data.AccountInfo
 	StakeInfo
+	TotalBalanceWithStake    string  `json:"totalBalanceWithStake"`
+	TotalBalanceWithStakeNum float64 `json:"totalBalanceWithStakeNum"`
 }
 
 type AccountsData struct {

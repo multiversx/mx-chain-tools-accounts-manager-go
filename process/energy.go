@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/core"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/tidwall/gjson"
@@ -16,6 +17,7 @@ import (
 
 const (
 	hexEncodedEnergyPrefix = "75736572456e65726779"
+	pathIterateKeys        = "/address/iterate-keys"
 )
 
 // GetAccountsWithEnergy will return accounts with energy
@@ -36,7 +38,15 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 		return nil, nil, fmt.Errorf("cannot get accounts with energy %s", genericAPIResponse.Error)
 	}
 
-	accountsWithEnergy, err := ag.extractAddressesAndEnergy(genericAPIResponse.Data, currentEpoch)
+	pairs := gjson.Get(string(genericAPIResponse.Data), "pairs")
+
+	keyValueMap := make(map[string]string)
+	err = json.Unmarshal([]byte(pairs.String()), &keyValueMap)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot unmarshal account storage, error: %s", err.Error())
+	}
+
+	accountsWithEnergy, err := ag.extractAddressesAndEnergy(keyValueMap, currentEpoch)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot extract accounts with energy %s", err.Error())
 	}
@@ -49,15 +59,83 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 	return accountsWithEnergy, blockInfo, nil
 }
 
-func (ag *accountsGetter) extractAddressesAndEnergy(accountStorage []byte, currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
-	pairs := gjson.Get(string(accountStorage), "pairs")
-
-	keyValueMap := make(map[string]string)
-	err := json.Unmarshal([]byte(pairs.String()), &keyValueMap)
-	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal account storage, error: %s", err.Error())
+func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error) {
+	if ag.energyContractAddress == "" {
+		return map[string]*data.AccountInfoWithStakeValues{}, nil, nil
 	}
 
+	defer logExecutionTime(time.Now(), "Fetched accounts from energy contract v2")
+
+	lastestBlockNonce, err := ag.getLatestBlockNonceForShardAddress(ag.energyContractAddress)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot get lastest block nonce%s", ag.energyContractAddress)
+	}
+
+	path := fmt.Sprintf("%s?blockNonce=%d", pathIterateKeys, lastestBlockNonce)
+	request := &data.IterateKeysRequest{
+		Address:       ag.energyContractAddress,
+		NumKeys:       0,
+		IteratorState: nil,
+	}
+
+	response := &data.IterateKeysAPIResponse{}
+	keyValueMap := make(map[string]string)
+	count := 0
+	for {
+		err = ag.restClient.CallPostRestEndPoint(path, request, response, core.GetEmptyApiCredentials())
+		if err != nil {
+			return nil, nil, err
+		}
+
+		for key, value := range response.Data.Pairs {
+			keyValueMap[key] = value
+		}
+
+		log.Info("fetched keys", "idx", count, "total pairs", len(keyValueMap))
+		count++
+
+		if response.Data.NewIteratorState != nil {
+			request.IteratorState = response.Data.NewIteratorState
+			continue
+		}
+
+		if response.Error != "" {
+			return nil, nil, fmt.Errorf("cannot iterate keys energy contract %s", response.Error)
+		}
+		break
+	}
+
+	accountsWithEnergy, err := ag.extractAddressesAndEnergy(keyValueMap, currentEpoch)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot extract accounts with energy %s", err.Error())
+	}
+
+	return accountsWithEnergy, response.Data.BlockInfo, nil
+}
+
+func (ag *accountsGetter) getLatestBlockNonceForShardAddress(address string) (uint64, error) {
+	decodedKey, err := ag.pubKeyConverter.Decode(address)
+	if err != nil {
+		return 0, fmt.Errorf("cannot get latest block nonce: %s", err.Error())
+	}
+
+	shardID := sharding.ComputeShardID(decodedKey, 3)
+
+	genericAPIResponse := &data.GenericAPIResponse{}
+	err = ag.restClient.CallGetRestEndPoint(fmt.Sprintf("/network/status/%d", shardID), genericAPIResponse, core.GetEmptyApiCredentials())
+	if err != nil {
+		return 0, err
+	}
+	if genericAPIResponse.Error != "" {
+		return 0, fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
+	}
+
+	nonce := gjson.Get(string(genericAPIResponse.Data), "status.erd_nonce")
+	return uint64(nonce.Num), nil
+
+}
+
+func (ag *accountsGetter) extractAddressesAndEnergy(keyValueMap map[string]string, currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, error) {
 	accountsWithEnergy := make(map[string]*data.AccountInfoWithStakeValues)
 	for key, value := range keyValueMap {
 
@@ -100,7 +178,7 @@ func (ag *accountsGetter) extractAddressFromKey(key string) (string, bool) {
 		return "", false
 	}
 
-	return ag.pubKeyConverter.Encode(addressBytes), true
+	return ag.pubKeyConverter.SilentEncode(addressBytes, log), true
 }
 
 const (
