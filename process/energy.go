@@ -71,10 +71,12 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 		return nil, nil, fmt.Errorf("cannot get lastest block nonce%s", ag.energyContractAddress)
 	}
 
+	log.Info("block nonce for shard", "nonce", lastestBlockNonce)
+
 	path := fmt.Sprintf("%s?blockNonce=%d", pathIterateKeys, lastestBlockNonce)
 	request := &data.IterateKeysRequest{
 		Address:       ag.energyContractAddress,
-		NumKeys:       0,
+		NumKeys:       15_000,
 		IteratorState: nil,
 	}
 
