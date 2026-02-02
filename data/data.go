@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
+// AddressHRP is the const for the multiversx addresses hrp
 const AddressHRP = "erd"
 
 // GenericAPIResponse defines the structure of all responses on API endpoints

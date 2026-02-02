@@ -59,6 +59,7 @@ func (ag *accountsGetter) GetAccountsWithEnergy(currentEpoch uint32) (map[string
 	return accountsWithEnergy, blockInfo, nil
 }
 
+// GetAccountsWithEnergyV2 wii return the accounts with energy using the endpoint /address/iterate-keys
 func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[string]*data.AccountInfoWithStakeValues, *data.BlockInfo, error) {
 	if ag.energyContractAddress == "" {
 		return map[string]*data.AccountInfoWithStakeValues{}, nil, nil
@@ -68,7 +69,7 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 
 	lastestBlockNonce, err := ag.getLatestBlockNonceForShardAddress(ag.energyContractAddress)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get lastest block nonce%s", ag.energyContractAddress)
+		return nil, nil, fmt.Errorf("cannot get latest block nonce for address %s: %w", ag.energyContractAddress, err)
 	}
 
 	log.Info("block nonce for shard", "nonce", lastestBlockNonce)
@@ -89,6 +90,10 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 			return nil, nil, err
 		}
 
+		if response.Error != "" {
+			return nil, nil, fmt.Errorf("cannot iterate keys energy contract %s", response.Error)
+		}
+
 		for key, value := range response.Data.Pairs {
 			keyValueMap[key] = value
 		}
@@ -96,13 +101,9 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 		log.Info("fetched keys", "idx", count, "total pairs", len(keyValueMap))
 		count++
 
-		if response.Data.NewIteratorState != nil {
+		if len(response.Data.NewIteratorState) > 0 {
 			request.IteratorState = response.Data.NewIteratorState
 			continue
-		}
-
-		if response.Error != "" {
-			return nil, nil, fmt.Errorf("cannot iterate keys energy contract %s", response.Error)
 		}
 		break
 	}
@@ -129,7 +130,7 @@ func (ag *accountsGetter) getLatestBlockNonceForShardAddress(address string) (ui
 		return 0, err
 	}
 	if genericAPIResponse.Error != "" {
-		return 0, fmt.Errorf("cannot compute accounts index %s", genericAPIResponse.Error)
+		return 0, fmt.Errorf("cannot get latest block nonce for shard %d: network status error: %s", shardID, genericAPIResponse.Error)
 	}
 
 	nonce := gjson.Get(string(genericAPIResponse.Data), "status.erd_nonce")
