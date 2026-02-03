@@ -13,7 +13,7 @@ import (
 
 func TestAccountsGetter_DelegationMetaPutUnDelegatedValues(t *testing.T) {
 	t.Parallel()
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, data.AddressHRP)
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKeyConverter, data.RestApiAuthenticationData{}, config.GeneralConfig{}, &mocks.ElasticClientStub{
 		DoScrollRequestAllDocumentsCalled: func(index string, body []byte, handlerFunc func(responseBytes []byte) error) error {

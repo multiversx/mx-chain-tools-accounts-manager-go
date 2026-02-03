@@ -157,7 +157,7 @@ func (ag *accountsGetter) extractUsersIDMap(pairsMap map[string]string) (map[str
 		}
 
 		if bytes.HasPrefix(keyDecoded, []byte(userAddressPrefix)) && len(keyDecoded) == len(userAddressPrefix)+addressLength {
-			userAddress := ag.pubKeyConverter.Encode(keyDecoded[len(userAddressPrefix):])
+			userAddress := ag.pubKeyConverter.SilentEncode(keyDecoded[len(userAddressPrefix):], log)
 			valueDecoded, errE := hex.DecodeString(value)
 			if errE != nil {
 				return nil, errE

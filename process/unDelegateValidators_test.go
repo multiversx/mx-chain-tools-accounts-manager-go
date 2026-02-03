@@ -17,7 +17,7 @@ import (
 func TestAccountsGetter_ValidatorsAccountsPutUnDelegatedValues(t *testing.T) {
 	t.Parallel()
 
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, data.AddressHRP)
 
 	ag, err := NewAccountsGetter(&mocks.RestClientStub{
 		CallPostRestEndPointCalled: func(path string, dataD interface{}, response interface{}, authenticationData data.RestApiAuthenticationData) error {

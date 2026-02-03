@@ -1,6 +1,7 @@
 package process
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -11,18 +12,25 @@ import (
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/data"
 	"github.com/multiversx/mx-chain-tools-accounts-manager-go/mocks"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 )
 
 func TestExtractAddressesAndEnergy(t *testing.T) {
 	t.Parallel()
 
-	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKey, _ := pubkeyConverter.NewBech32PubkeyConverter(32, data.AddressHRP)
 	auth := core.FetchAuthenticationData(config.APIConfig{})
 	accountsWithEnergyGetter, err := NewAccountsGetter(&mocks.RestClientStub{}, pubKey, auth, config.GeneralConfig{}, &mocks.ElasticClientStub{})
 	require.Nil(t, err)
 
 	testData := readJson("./testdata/account-storage.json")
-	res, err := accountsWithEnergyGetter.extractAddressesAndEnergy([]byte(testData), 2047)
+	pairs := gjson.Get(testData, "pairs")
+
+	keyValueMap := make(map[string]string)
+	err = json.Unmarshal([]byte(pairs.String()), &keyValueMap)
+	require.Nil(t, err)
+
+	res, err := accountsWithEnergyGetter.extractAddressesAndEnergy(keyValueMap, 2047)
 	require.Nil(t, err)
 	require.NotNil(t, res)
 

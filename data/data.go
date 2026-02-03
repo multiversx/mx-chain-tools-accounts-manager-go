@@ -7,11 +7,32 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
+// AddressHRP is the const for the multiversx addresses hrp
+const AddressHRP = "erd"
+
 // GenericAPIResponse defines the structure of all responses on API endpoints
 type GenericAPIResponse struct {
 	Data  json.RawMessage `json:"data"`
 	Error string          `json:"error"`
 	Code  string          `json:"code"`
+}
+
+// IterateKeysRequest defines the /address/iterate-keys endpoint request structure
+type IterateKeysRequest struct {
+	Address       string   `json:"address"`
+	NumKeys       int      `json:"numKeys"`
+	IteratorState []string `json:"iteratorState"`
+}
+
+// IterateKeysAPIResponse defines the /address/iterate-keys endpoint response
+type IterateKeysAPIResponse struct {
+	Data struct {
+		BlockInfo        *BlockInfo        `json:"blockInfo"`
+		NewIteratorState []string          `json:"newIteratorState"`
+		Pairs            map[string]string `json:"pairs"`
+	} `json:"data"`
+	Code  string `json:"code"`
+	Error string `json:"error"`
 }
 
 // BlockInfo defines the structure of block info
@@ -93,6 +114,8 @@ type BulkRequestResponse struct {
 type AccountInfoWithStakeValues struct {
 	data.AccountInfo
 	StakeInfo
+	TotalBalanceWithStake    string  `json:"totalBalanceWithStake"`
+	TotalBalanceWithStakeNum float64 `json:"totalBalanceWithStakeNum"`
 }
 
 type AccountsData struct {

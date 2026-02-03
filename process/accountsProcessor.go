@@ -48,7 +48,7 @@ func (ap *accountsProcessor) GetAllAccountsWithStake(currentEpoch uint32) (*data
 		return nil, err
 	}
 
-	accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergy(currentEpoch)
+	accountsWithEnergy, blockInfoEnergy, err := ap.GetAccountsWithEnergyV2(currentEpoch)
 	if err != nil {
 		return nil, err
 	}
