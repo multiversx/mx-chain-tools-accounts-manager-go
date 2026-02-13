@@ -50,8 +50,6 @@ func New(
 
 // ReindexAccounts will reindex all accounts from source indexer to destination indexer
 func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string, restAccounts *data.AccountsData) error {
-	log.Info("Create a new index with mapping")
-
 	template, _, err := readTemplateAndPolicyForAccountsIndex(r.pathToIndicesConfig)
 	if err != nil {
 		return err
@@ -60,10 +58,21 @@ func (r *reindexer) ReindexAccounts(sourceIndex string, destinationIndex string,
 	templateBytes := template.Bytes()
 
 	for _, dstClient := range r.destinationClients {
+		exists, errC := dstClient.CheckIfIndexExists(destinationIndex)
+		if errC != nil {
+			return errC
+		}
+		if exists {
+			log.Info("index already exists", "index", destinationIndex)
+			continue
+		}
+
 		err = dstClient.CreateIndexWithMapping(destinationIndex, bytes.NewBuffer(templateBytes))
 		if err != nil {
 			return err
 		}
+
+		log.Info("created a new index with mapping", "index", destinationIndex)
 	}
 
 	saverFunc := func(responseBytes []byte) error {
