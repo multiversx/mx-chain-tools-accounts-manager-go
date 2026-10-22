@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	pathAddressKeys = "/address/%s/keys"
-
 	userAddressPrefix = "user_id"
 
 	addressLength = 32

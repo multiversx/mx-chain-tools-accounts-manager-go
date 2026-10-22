@@ -61,22 +61,8 @@ func NewAccountsGetter(
 func (ag *accountsGetter) GetLegacyDelegatorsAccounts() (map[string]*data.AccountInfoWithStakeValues, error) {
 	defer logExecutionTime(time.Now(), "Fetched accounts from legacy delegation contract")
 
-	responseKeys := &data.GenericAPIResponse{}
-	path := fmt.Sprintf(pathAddressKeys, ag.delegationContractAddress)
-	err := ag.restClient.CallGetRestEndPoint(path, responseKeys, core.GetEmptyApiCredentials())
+	pairsMap, _, err := ag.fetchAllPairsViaIterateKeys(ag.delegationContractAddress)
 	if err != nil {
-		return nil, err
-	}
-	if responseKeys.Error != "" {
-		return nil, fmt.Errorf("%s", responseKeys.Error)
-	}
-
-	pairs := gjson.Get(string(responseKeys.Data), "pairs")
-
-	pairsMap := make(map[string]string)
-	err = json.Unmarshal([]byte(pairs.String()), &pairsMap)
-	if err != nil {
-		log.Warn("cannot unmarshal accounts info", "error", err.Error())
 		return nil, err
 	}
 
