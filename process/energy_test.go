@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -130,4 +131,33 @@ func TestExtractBlockInfo(t *testing.T) {
 		Nonce:    uint64(3576295),
 		RootHash: "1829f8c869318f1c5ddc8a887fc2bb206b42fa9a484b8beb94e7873b633cdc61",
 	}, blockInfo)
+}
+
+func TestCallPostWithRetry(t *testing.T) {
+	t.Parallel()
+
+	calls := 0
+	flaky := &mocks.RestClientStub{
+		CallPostRestEndPointCalled: func(path string, requestData interface{}, response interface{}, _ data.RestApiAuthenticationData) error {
+			calls++
+			if calls < 3 {
+				return errors.New("transient error")
+			}
+			return nil
+		},
+	}
+	err := callPostWithRetry(flaky, "path", &data.IterateKeysRequest{}, &data.IterateKeysAPIResponse{})
+	require.Nil(t, err)
+	require.Equal(t, 3, calls)
+
+	calls = 0
+	failing := &mocks.RestClientStub{
+		CallPostRestEndPointCalled: func(path string, requestData interface{}, response interface{}, _ data.RestApiAuthenticationData) error {
+			calls++
+			return errors.New("transient error")
+		},
+	}
+	err = callPostWithRetry(failing, "path", &data.IterateKeysRequest{}, &data.IterateKeysAPIResponse{})
+	require.NotNil(t, err)
+	require.Equal(t, 1+iterateKeysMaxRetries, calls)
 }

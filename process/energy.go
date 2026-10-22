@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math/big"
 	"strings"
 	"time"
@@ -18,6 +19,9 @@ import (
 const (
 	hexEncodedEnergyPrefix = "75736572456e65726779"
 	pathIterateKeys        = "/address/iterate-keys"
+
+	iterateKeysMaxRetries = 30
+	iterateKeysRetryDelay = 100 * time.Microsecond
 )
 
 // GetAccountsWithEnergy will return accounts with energy
@@ -67,17 +71,31 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 
 	defer logExecutionTime(time.Now(), "Fetched accounts from energy contract v2")
 
-	lastestBlockNonce, err := ag.getLatestBlockNonceForShardAddress(ag.energyContractAddress)
+	keyValueMap, blockInfo, err := ag.fetchAllPairsViaIterateKeys(ag.energyContractAddress)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get latest block nonce for address %s: %w", ag.energyContractAddress, err)
+		return nil, nil, err
+	}
+
+	accountsWithEnergy, err := ag.extractAddressesAndEnergy(keyValueMap, currentEpoch)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot extract accounts with energy %s", err.Error())
+	}
+
+	return accountsWithEnergy, blockInfo, nil
+}
+
+func (ag *accountsGetter) fetchAllPairsViaIterateKeys(address string) (map[string]string, *data.BlockInfo, error) {
+	lastestBlockNonce, err := ag.getLatestBlockNonceForShardAddress(address)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot get latest block nonce for address %s: %w", address, err)
 	}
 
 	log.Info("block nonce for shard", "nonce", lastestBlockNonce)
 
 	path := fmt.Sprintf("%s?blockNonce=%d", pathIterateKeys, lastestBlockNonce)
 	request := &data.IterateKeysRequest{
-		Address:       ag.energyContractAddress,
-		NumKeys:       15_000,
+		Address:       address,
+		NumKeys:       10_000,
 		IteratorState: nil,
 	}
 
@@ -85,18 +103,16 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 	keyValueMap := make(map[string]string)
 	count := 0
 	for {
-		err = ag.restClient.CallPostRestEndPoint(path, request, response, core.GetEmptyApiCredentials())
+		err = callPostWithRetry(ag.restClient, path, request, response)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		if response.Error != "" {
-			return nil, nil, fmt.Errorf("cannot iterate keys energy contract %s", response.Error)
+			return nil, nil, fmt.Errorf("cannot iterate keys for address %s: %s", address, response.Error)
 		}
 
-		for key, value := range response.Data.Pairs {
-			keyValueMap[key] = value
-		}
+		maps.Copy(keyValueMap, response.Data.Pairs)
 
 		log.Info("fetched keys", "idx", count, "total pairs", len(keyValueMap))
 		count++
@@ -108,12 +124,23 @@ func (ag *accountsGetter) GetAccountsWithEnergyV2(currentEpoch uint32) (map[stri
 		break
 	}
 
-	accountsWithEnergy, err := ag.extractAddressesAndEnergy(keyValueMap, currentEpoch)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot extract accounts with energy %s", err.Error())
-	}
+	return keyValueMap, response.Data.BlockInfo, nil
+}
 
-	return accountsWithEnergy, response.Data.BlockInfo, nil
+func callPostWithRetry(client RestClientHandler, path string, request, response interface{}) error {
+	var err error
+	for attempt := 0; ; attempt++ {
+		err = client.CallPostRestEndPoint(path, request, response, core.GetEmptyApiCredentials())
+		if err == nil {
+			return nil
+		}
+		if attempt >= iterateKeysMaxRetries {
+			log.Warn("cannot call iterate-keys, max retries", "path", path, "attempt", attempt+1, "error", err.Error())
+			return err
+		}
+		log.Debug("cannot call iterate-keys, retrying", "path", path, "attempt", attempt+1, "error", err.Error())
+		time.Sleep(iterateKeysRetryDelay)
+	}
 }
 
 func (ag *accountsGetter) getLatestBlockNonceForShardAddress(address string) (uint64, error) {
